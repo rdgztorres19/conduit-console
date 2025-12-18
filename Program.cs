@@ -16,7 +16,12 @@ class Program
         // ════════════════════════════════════════════════════════════════
         const string plcIp = "192.168.8.55";
         const int slot = 0;
+        
+        // Tags basados en el ejemplo JNJ:
+        // - Analysis tag está en Program scope (no especifica nombre de programa)
+        // - Sample tag está en Controller scope (sin prefijo)
         const string tagToRead = "Program:UDT_NGP_INTERFEROMETER_ANALYSIS_TAG";
+        const string sampleTagName = "ngpSampleCurrent";
 
         // ════════════════════════════════════════════════════════════════
         // DEPENDENCY INJECTION
@@ -40,6 +45,7 @@ class Program
             .WithPlc(plcIp, cpuSlot: slot)
             .WithDefaultPollingInterval(100) // 100ms default polling
             .WithAutoReconnect(enabled: false, maxDelaySeconds: 30) // Desactivar auto-reconnect para ver el error real
+            .WithLoggerFactory(loggerFactory) // ⚠️ IMPORTANTE: Para ver los logs internos de Conduit
             .WithHandlersFromEntryAssembly()
             .Build();
 
@@ -93,17 +99,22 @@ class Program
         }
 
         // ════════════════════════════════════════════════════════════════
-        // PRUEBA: Leer un tag simple primero para verificar comunicación
-        // ════════════════════════════════════════════════════════════════
-        Console.WriteLine("📖 Testing with LocalDateTime (system tag)...");
+        // PRUEBA: Leer un tag simple primero para verificar comunicación básica
+        // ════════════════════════════════════════════════════════════
+        Console.WriteLine("📖 Testing basic communication...");
         try
         {
-            var timeTest = await plcConnection.ReadTagAsync<int>("Local:0:I.Data");
-            Console.WriteLine($"   LocalDateTime test - Quality: {timeTest.Quality}");
+            // Intentar leer el tag de sample primero (Controller scope, más simple)
+            var testSample = await plcConnection.ReadTagAsync<STRUCT_samples>(sampleTagName);
+            Console.WriteLine($"   Sample tag test - Quality: {testSample.Quality}");
+            if (testSample.Quality == Conduit.AsComm.Messages.TagQuality.Good)
+            {
+                Console.WriteLine("   ✅ Communication working!");
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"   LocalDateTime test failed: {ex.Message}");
+            Console.WriteLine($"   ⚠️  Initial test: {ex.Message}");
         }
         Console.WriteLine();
 
@@ -127,8 +138,9 @@ class Program
 
         // LEER TAG DE SAMPLE (UDT completo)
         // ════════════════════════════════════════════════════════════════
-        Console.WriteLine("📖 Reading tag: ngpSampleCurrent");
-        var sampleResult = await plcConnection.ReadTagAsync<STRUCT_samples>("ngpSampleCurrent");
+
+        Console.WriteLine($"📖 Reading tag: {sampleTagName}");
+        var sampleResult = await plcConnection.ReadTagAsync<STRUCT_samples>(sampleTagName);
         
         Console.WriteLine($"   Quality: {sampleResult.Quality}");
         if (sampleResult.Quality == Conduit.AsComm.Messages.TagQuality.Good)
