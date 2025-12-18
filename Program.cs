@@ -28,17 +28,20 @@ class Program
         services.AddLogging(builder =>
         {
             builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Warning); // Reduce noise - solo muestra warnings y errores
+            builder.SetMinimumLevel(LogLevel.Information); // Information para ver los handlers
         });
+
+        // NO registrar handlers - solo los servicios que necesitan (ILogger<>)
+        // El activador los creará con new() e inyectará las dependencias del contenedor
 
         var serviceProvider = services.BuildServiceProvider();
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         // ════════════════════════════════════════════════════════════════
-        // CONFIGURAR CONDUIT CON PLC
+        // CONFIGURAR CONDUIT CON PLC - Igual que ConsoleWithAutofac
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
-            // Sin .WithServiceProvider() - usa activador por defecto que soporta constructores sin parámetros
+            .WithActivator(type => serviceProvider.GetService(type) ?? Activator.CreateInstance(type)!)  // 👈 Intenta DI, sino new()
             .AddAsCommConnection(plc => plc
                 .WithConnectionName("plc1")
                 .WithPlc(plcIp, cpuSlot: slot)
