@@ -6,12 +6,13 @@ using Microsoft.Extensions.Logging;
 namespace ConduitPlcDemo.Handlers;
 
 /// <summary>
-/// Handler para el tag de análisis del interferómetro.
-/// Usa UNSOLICITED mode (10ms polling) para respuesta rápida.
-/// 
-/// Mismo tag que en el ejemplo de JNJ:
-/// "Program:UDT_NGP_INTERFEROMETER_ANALYSIS_TAG"
+/// ⚠️ DESHABILITADO: Este handler está comentado porque el tag no existe en el PLC.
+/// Para habilitarlo:
+/// 1. Crea el tag "UDT_NGP_INTERFEROMETER_ANALYSIS_TAG" en MainProgram > Program Tags
+/// 2. Descomenta este código
 /// </summary>
+
+/*
 [AsCommSubscribe("plc1", "Program:UDT_NGP_INTERFEROMETER_ANALYSIS_TAG", mode: TagSubscriptionMode.Unsolicited)]
 public class InterferometerAnalysisHandler : IMessageSubscriptionHandler<TagValue<STRUCT_interferometer_analysis>>
 {
@@ -67,3 +68,4 @@ public class InterferometerAnalysisHandler : IMessageSubscriptionHandler<TagValu
         return Task.CompletedTask;
     }
 }
+*/

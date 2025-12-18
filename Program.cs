@@ -17,10 +17,7 @@ class Program
         const string plcIp = "192.168.8.55";
         const int slot = 0;
         
-        // Tags basados en el ejemplo JNJ:
-        // - Analysis tag está en Program scope (no especifica nombre de programa)
-        // - Sample tag está en Controller scope (sin prefijo)
-        const string tagToRead = "Program:UDT_NGP_INTERFEROMETER_ANALYSIS_TAG";
+        // Tag a leer: ngpSampleCurrent (Controller scope)
         const string sampleTagName = "ngpSampleCurrent";
 
         // ════════════════════════════════════════════════════════════════
@@ -99,46 +96,8 @@ class Program
         }
 
         // ════════════════════════════════════════════════════════════════
-        // PRUEBA: Leer un tag simple primero para verificar comunicación básica
-        // ════════════════════════════════════════════════════════════
-        Console.WriteLine("📖 Testing basic communication...");
-        try
-        {
-            // Intentar leer el tag de sample primero (Controller scope, más simple)
-            var testSample = await plcConnection.ReadTagAsync<STRUCT_samples>(sampleTagName);
-            Console.WriteLine($"   Sample tag test - Quality: {testSample.Quality}");
-            if (testSample.Quality == Conduit.AsComm.Messages.TagQuality.Good)
-            {
-                Console.WriteLine("   ✅ Communication working!");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"   ⚠️  Initial test: {ex.Message}");
-        }
-        Console.WriteLine();
-
-        // LEER TAG INDIVIDUAL (Interferometer Analysis)
+        // LEER TAG: ngpSampleCurrent
         // ════════════════════════════════════════════════════════════════
-        Console.WriteLine($"📖 Reading tag: {tagToRead}");
-        var result = await plcConnection.ReadTagAsync<STRUCT_interferometer_analysis>(tagToRead);
-        
-        Console.WriteLine($"   Quality: {result.Quality}");
-        if (result.Quality == Conduit.AsComm.Messages.TagQuality.Good)
-        {
-            Console.WriteLine($"   MeasurementStatus: {result.Value.MeasurementStatus}");
-            Console.WriteLine($"   Result: {result.Value.Result}");
-        }        else
-        {
-            Console.WriteLine($"   ❌ ERROR: Tag returned {result.Quality} quality!");
-            Console.WriteLine($"   💡 Check if tag name is correct: '{tagToRead}'");
-            Console.WriteLine($"   💡 Verify the tag exists in the PLC controller");
-            Console.WriteLine($"   💡 Try reading a simple tag first (like 'Local:0:I.Data' or a basic DINT tag)");
-        }        Console.WriteLine();
-
-        // LEER TAG DE SAMPLE (UDT completo)
-        // ════════════════════════════════════════════════════════════════
-
         Console.WriteLine($"📖 Reading tag: {sampleTagName}");
         var sampleResult = await plcConnection.ReadTagAsync<STRUCT_samples>(sampleTagName);
         
