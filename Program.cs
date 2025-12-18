@@ -41,7 +41,7 @@ class Program
         // CONFIGURAR CONDUIT CON PLC - Igual que ConsoleWithAutofac
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
-            .WithActivator(type => serviceProvider.GetService(type) ?? Activator.CreateInstance(type)!)  // 👈 Intenta DI, sino new()
+            .WithActivator(type => ActivatorUtilities.CreateInstance(serviceProvider, type))  // 👈 Crea con DI automático
             .AddAsCommConnection(plc => plc
                 .WithConnectionName("plc1")
                 .WithPlc(plcIp, cpuSlot: slot)

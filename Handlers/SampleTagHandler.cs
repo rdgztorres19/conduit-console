@@ -36,6 +36,8 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
         IMessageContext context,
         CancellationToken ct)
     {
+        Console.WriteLine("🔔 SampleTagHandler invoked");
+        
         if (message.Quality != TagQuality.Good)
         {
             _logger.LogWarning("⚠️ Sample tag quality: {Quality}", message.Quality);
