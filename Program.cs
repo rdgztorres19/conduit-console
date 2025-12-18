@@ -93,6 +93,20 @@ class Program
         }
 
         // ════════════════════════════════════════════════════════════════
+        // PRUEBA: Leer un tag simple primero para verificar comunicación
+        // ════════════════════════════════════════════════════════════════
+        Console.WriteLine("📖 Testing with LocalDateTime (system tag)...");
+        try
+        {
+            var timeTest = await plcConnection.ReadTagAsync<int>("Local:0:I.Data");
+            Console.WriteLine($"   LocalDateTime test - Quality: {timeTest.Quality}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"   LocalDateTime test failed: {ex.Message}");
+        }
+        Console.WriteLine();
+
         // LEER TAG INDIVIDUAL (Interferometer Analysis)
         // ════════════════════════════════════════════════════════════════
         Console.WriteLine($"📖 Reading tag: {tagToRead}");
