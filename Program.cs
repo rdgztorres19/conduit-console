@@ -35,10 +35,10 @@ class Program
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         // ════════════════════════════════════════════════════════════════
-        // CONFIGURAR CONDUIT CON PLC - Igual que ConsoleWithAutofac
+        // CONFIGURAR CONDUIT CON PLC
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
-            .WithServiceProvider(serviceProvider)  // 👈 Más simple - no necesita DelegateHandlerActivator
+            // Sin .WithServiceProvider() - usa activador por defecto que soporta constructores sin parámetros
             .AddAsCommConnection(plc => plc
                 .WithConnectionName("plc1")
                 .WithPlc(plcIp, cpuSlot: slot)
