@@ -140,38 +140,31 @@ public class STRUCT_pallets_base
 }
 
 /// <summary>
-/// Cavity structure (site, lot number, position, analysis).
+/// Cavity structure - matches PLC exactly: identifier, siteNumber, lotNumber
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
 public class STRUCT_cavities
 {
-    public int site = 0;
+    public int identifier = 0;
+    public int siteNumber = 0;
     public LOGIX_STRING lotNumber = new();
-    public STRUCT_interferometer_position interferometerPosition = new();
-    public STRUCT_interferometer_analysis cavityAnalysis = new();
 
-    public int Site
+    public int Identifier
     {
-        get => site;
-        set => site = value;
+        get => identifier;
+        set => identifier = value;
+    }
+
+    public int SiteNumber
+    {
+        get => siteNumber;
+        set => siteNumber = value;
     }
 
     public LOGIX_STRING LotNumber
     {
         get => lotNumber;
         set => lotNumber = value;
-    }
-
-    public STRUCT_interferometer_position InterferometerPosition
-    {
-        get => interferometerPosition;
-        set => interferometerPosition = value;
-    }
-
-    public STRUCT_interferometer_analysis CavityAnalysis
-    {
-        get => cavityAnalysis;
-        set => cavityAnalysis = value;
     }
 }
 

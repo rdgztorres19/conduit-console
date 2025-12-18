@@ -59,14 +59,10 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
             {
                 var cavity = pallet.Cavities[0];
                 _logger.LogInformation(
-                    "      └─ Cavity[0] | Site: {Site} | Lot: {Lot} | Position: ({X:F2}, {Y:F2}, {Z:F2}) mm | Analysis: {Status}/{Result}",
-                    cavity.Site,
-                    cavity.LotNumber.Value,
-                    cavity.InterferometerPosition.XlocMm,
-                    cavity.InterferometerPosition.YlocMm,
-                    cavity.InterferometerPosition.ZlocMm,
-                    cavity.CavityAnalysis.MeasurementStatus,
-                    cavity.CavityAnalysis.Result);
+                    "      └─ Cavity[0] | ID: {Id} | Site: {Site} | Lot: {Lot}",
+                    cavity.Identifier,
+                    cavity.SiteNumber,
+                    cavity.LotNumber.Value);
             }
         }
 
