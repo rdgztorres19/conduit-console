@@ -127,16 +127,39 @@ class Program
         }        Console.WriteLine();
 
         // ════════════════════════════════════════════════════════════════
+        // ESCRITURA PERIÓDICA - Cada 5 segundos
+        // ════════════════════════════════════════════════════════════════
+        var cts = new CancellationTokenSource();
+        var random = new Random();
+        
+        var writeTimer = new System.Threading.Timer(async _ =>
+        {
+            try
+            {
+                var randomValue = random.Next(1, 100);
+                var tagPath = "ngpSampleCurrent.pallets[0].cavities[0].siteNumber";
+                
+                Console.WriteLine($"✏️ Writing {randomValue} to {tagPath}");
+                await plcConnection.WriteTagAsync(tagPath, randomValue);
+                Console.WriteLine($"✅ Write successful");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Write error: {ex.Message}");
+            }
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
+
+        // ════════════════════════════════════════════════════════════════
         // HANDLERS AUTOMÁTICOS
         // ════════════════════════════════════════════════════════════════
         Console.WriteLine("📡 Automatic handler active:");
         Console.WriteLine("   - SampleTagHandler (Polling mode - 1000ms)");
         Console.WriteLine();
+        Console.WriteLine("✏️ Writing random values to ngpSampleCurrent.pallets[0].cavities[0].siteNumber every 5 seconds");
+        Console.WriteLine();
         Console.WriteLine("Press CTRL+C to exit\n");
         Console.WriteLine("════════════════════════════════════════════════════════════════");
 
-        // Mantener la aplicación corriendo
-        var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (s, e) =>
         {
             e.Cancel = true;
@@ -151,6 +174,8 @@ class Program
         {
             Console.WriteLine("\n\n🛑 Shutting down...");
         }
+        
+        writeTimer.Dispose();
 
         // ════════════════════════════════════════════════════════════════
         // CLEANUP
