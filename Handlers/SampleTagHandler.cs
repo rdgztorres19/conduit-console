@@ -19,16 +19,11 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
     private readonly ILogger<SampleTagHandler> _logger;
     private int _updateCount = 0;
 
-    // Constructor sin parámetros para Conduit
-    public SampleTagHandler()
-    {
-        _logger = NullLogger<SampleTagHandler>.Instance;
-    }
-
     // Constructor con DI (opcional, si se usa con DI)
     public SampleTagHandler(ILogger<SampleTagHandler> logger)
     {
         _logger = logger;
+        _logger.LogInformation("🚀 SampleTagHandler instance created with DI");
     }
 
     public Task HandleAsync(
@@ -37,7 +32,7 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
         CancellationToken ct)
     {
         Console.WriteLine("🔔 SampleTagHandler invoked");
-        
+
         if (message.Quality != TagQuality.Good)
         {
             _logger.LogWarning("⚠️ Sample tag quality: {Quality}", message.Quality);

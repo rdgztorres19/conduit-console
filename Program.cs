@@ -28,7 +28,7 @@ class Program
         services.AddLogging(builder =>
         {
             builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Information); // Information para ver los handlers
+            builder.SetMinimumLevel(LogLevel.Debug); // Debug para ver activación de polling groups
         });
 
         // NO registrar handlers - solo los servicios que necesitan (ILogger<>)
