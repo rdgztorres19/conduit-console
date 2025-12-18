@@ -17,11 +17,19 @@
       <HintPath>libs\Conduit.AsComm.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="Conduit.Mqtt">
+      <HintPath>libs\Conduit.Mqtt.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="8.0.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
+    <PackageReference Include="SimpleInjector" Version="5.4.6" />
   </ItemGroup>
 
   <ItemGroup>

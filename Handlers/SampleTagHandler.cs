@@ -1,6 +1,7 @@
 using Conduit.AsComm.Attributes;
 using Conduit.AsComm.Messages;
 using Conduit.Core.Abstractions;
+using Conduit.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,6 +14,8 @@ namespace ConduitPlcDemo.Handlers;
 /// Tag del ejemplo de JNJ: "ngpSampleCurrent"
 /// Este es un UDT complejo con samples, pallets y cavities.
 /// </summary>
+/// 
+[DisableHandler] 
 [AsCommSubscribe("plc1", "ngpSampleCurrent", pollingIntervalMs: 1000, OnChangeOnly = true)]
 public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samples>>
 {

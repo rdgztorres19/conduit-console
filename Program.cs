@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Conduit.Core;
 using Conduit.AsComm;
+using Conduit.Mqtt;
+using ConduitPlcDemo.Services;
 
 namespace ConduitPlcDemo;
 
@@ -12,36 +14,26 @@ class Program
         Console.WriteLine("🚀 Conduit PLC Demo - Starting...\n");
 
         // ════════════════════════════════════════════════════════════════
-        // CONFIGURACIÓN - Igual que el ejemplo de JNJ
+        // CONFIGURACIÓN
         // ════════════════════════════════════════════════════════════════
         const string plcIp = "192.168.8.55";
         const int slot = 0;
-        
-        // Tag a leer: ngpSampleCurrent (Controller scope)
-        const string sampleTagName = "ngpSampleCurrent";
 
         // ════════════════════════════════════════════════════════════════
         // DEPENDENCY INJECTION
         // ════════════════════════════════════════════════════════════════
-        var services = new ServiceCollection();
-        
-        services.AddLogging(builder =>
-        {
-            builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Debug); // Debug para ver activación de polling groups
-        });
+        var diContainer = DIContainerBuilder.Create()
+            .UseSimpleInjector()      // ← Cambiar a .UseAutofac() para usar Autofac
+            .Build();
 
-        // NO registrar handlers - solo los servicios que necesitan (ILogger<>)
-        // El activador los creará con new() e inyectará las dependencias del contenedor
-
-        var serviceProvider = services.BuildServiceProvider();
-        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+        var loggerFactory = diContainer.GetLoggerFactory();
+        var serviceProvider = diContainer.GetServiceProvider();
 
         // ════════════════════════════════════════════════════════════════
-        // CONFIGURAR CONDUIT CON PLC - Igual que ConsoleWithAutofac
+        // CONFIGURAR CONDUIT CON PLC
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
-            .WithActivator(type => ActivatorUtilities.CreateInstance(serviceProvider, type))  // 👈 Crea con DI automático
+            .WithActivator(diContainer.GetActivator())
             .AddAsCommConnection(plc => plc
                 .WithConnectionName("plc1")
                 .WithPlc(plcIp, cpuSlot: slot)
@@ -49,47 +41,55 @@ class Program
                 .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
                 .WithLoggerFactory(loggerFactory)
                 .WithHandlersFromEntryAssembly())
+            .AddMqttConnection(mqtt => mqtt
+                .WithConnectionName("mqtt")
+                .WithBroker("66.179.188.92", 1883)
+                .WithCredentials("admin", "sbrQp10")
+                .WithTls(enabled: false)
+                .WithClientId($"console-simpleinjector-{Environment.MachineName}-{Guid.NewGuid():N}"[..50])
+                .WithAutoReconnect(enabled: true, maxDelaySeconds: 30)
+                .WithKeepAlive(60)
+                .WithHandlersFromEntryAssembly())
             .Build();
-        
-        var plcConnection = conduit.GetConnection<IAsCommConnection>();
 
-        // Suscribirse a cambios de estado para debug
-        plcConnection.StateChanged += (sender, e) =>
-        {
-            Console.WriteLine($"🔄 State changed: {e.PreviousState} → {e.CurrentState}");
-            if (e.Exception != null)
-            {
-                Console.WriteLine($"   Error: {e.Exception.Message}");
-            }
-        };
+        var mqttConnection = conduit.GetConnection<IMqttConnection>();
 
         // ════════════════════════════════════════════════════════════════
-        // CONECTAR
+        // CONECTAR AL MQTT
         // ════════════════════════════════════════════════════════════════
-        Console.WriteLine($"📡 Connecting to PLC at {plcIp}, slot {slot}...");
-        
+        Console.WriteLine($"📡 Connecting to MQTT broker at 66.179.188.92:1883...");
+
         try
         {
             await conduit.ConnectAllAsync();
-            
-            // Esperar un poco para ver si cambia de estado
             await Task.Delay(500);
-            
-            Console.WriteLine($"Connection state: {plcConnection.State}");
-            
-            if (!plcConnection.IsConnected)
+
+            if (!mqttConnection.IsConnected)
             {
-                Console.WriteLine($"❌ Connection failed. State: {plcConnection.State}");
+                Console.WriteLine($"❌ MQTT Connection failed. State: {mqttConnection.State}");
                 Console.WriteLine("⚠️  Possible causes:");
-                Console.WriteLine("   - PLC is not reachable at this IP address");
-                Console.WriteLine("   - Incorrect slot number");
-                Console.WriteLine("   - ASComm IoT license not installed/valid");
+                Console.WriteLine("   - MQTT broker is not reachable");
+                Console.WriteLine("   - Wrong credentials");
                 Console.WriteLine("   - Firewall blocking connection");
-                Console.WriteLine($"\n💡 Verify: Can you ping {plcIp}?");
                 return;
             }
-            
-            Console.WriteLine("✅ Connected!\n");
+
+            Console.WriteLine($"✅ MQTT Connected! State: {mqttConnection.State}\n");
+
+            // ════════════════════════════════════════════════════════════════
+            // DEMO: Usar MqttSubscriptionService
+            // ════════════════════════════════════════════════════════════════
+            // var mqttSubscriptionService = new MqttSubscriptionService(mqttConnection);
+            // await mqttSubscriptionService.StartAsync();
+
+            // ════════════════════════════════════════════════════════════════
+            // DEMO: Usar AsCommDemoService
+            // ════════════════════════════════════════════════════════════════
+            // var plcConnection = conduit.GetConnection<IAsCommConnection>();
+            // var asCommDemoService = new AsCommDemoService(plcConnection);
+            // await asCommDemoService.ReadSampleTagAsync();
+            // await asCommDemoService.StartSubscriptionAsync();
+            // asCommDemoService.StartPeriodicWrites();
         }
         catch (Exception ex)
         {
@@ -103,63 +103,16 @@ class Program
         }
 
         // ════════════════════════════════════════════════════════════════
-        // LEER TAG: ngpSampleCurrent
+        // ESPERAR MENSAJES MQTT
         // ════════════════════════════════════════════════════════════════
-        Console.WriteLine($"📖 Reading tag: {sampleTagName}");
-        var sampleResult = await plcConnection.ReadTagAsync<STRUCT_samples>(sampleTagName);
-        
-        Console.WriteLine($"   Quality: {sampleResult.Quality}");
-        if (sampleResult.Quality == Conduit.AsComm.Messages.TagQuality.Good)
-        {
-            var s = sampleResult.Value;
-            Console.WriteLine($"   SampleId: {s.Data.SampleId.Value}");
-            Console.WriteLine($"   SampledOn: {s.Data.SampledOn.Value}");
-            Console.WriteLine($"   SampledBy: {s.Data.SampledBy.Value}");
-            if (s.Pallets?.Length > 0)
-            {
-                Console.WriteLine($"   Pallet[0] RFID: {s.Pallets[0].Data.Rfid.Value}");
-            }
-        }        else
-        {
-            Console.WriteLine($"   ❌ ERROR: Tag returned {sampleResult.Quality} quality!");
-            Console.WriteLine($"   💡 Check if tag 'ngpSampleCurrent' exists in the PLC");
-            Console.WriteLine($"   💡 Verify it's in the correct scope (Controller vs Program scope)");
-        }        Console.WriteLine();
-
-        // ════════════════════════════════════════════════════════════════
-        // ESCRITURA PERIÓDICA - Cada 5 segundos
-        // ════════════════════════════════════════════════════════════════
-        var cts = new CancellationTokenSource();
-        var random = new Random();
-        
-        var writeTimer = new System.Threading.Timer(async _ =>
-        {
-            try
-            {
-                var randomValue = random.Next(1, 100);
-                var tagPath = "ngpSampleCurrent.pallets[0].cavities[0].siteNumber";
-                
-                Console.WriteLine($"✏️ Writing {randomValue} to {tagPath}");
-                //await plcConnection.WriteTagAsync(tagPath, randomValue);
-                Console.WriteLine($"✅ Write successful");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Write error: {ex.Message}");
-            }
-        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
-
-        // ════════════════════════════════════════════════════════════════
-        // HANDLERS AUTOMÁTICOS
-        // ════════════════════════════════════════════════════════════════
-        Console.WriteLine("📡 Automatic handler active:");
-        Console.WriteLine("   - SampleTagHandler (Polling mode - 1000ms)");
-        Console.WriteLine();
-        Console.WriteLine("✏️ Writing random values to ngpSampleCurrent.pallets[0].cavities[0].siteNumber every 5 seconds");
+        Console.WriteLine("📡 MQTT Handlers active:");
+        Console.WriteLine("   - MqttRealtimeHandler (attribute-based)");
+        Console.WriteLine("   - MqttSubscriptionService (programmatic)");
         Console.WriteLine();
         Console.WriteLine("Press CTRL+C to exit\n");
         Console.WriteLine("════════════════════════════════════════════════════════════════");
 
+        var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (s, e) =>
         {
             e.Cancel = true;
@@ -174,15 +127,13 @@ class Program
         {
             Console.WriteLine("\n\n🛑 Shutting down...");
         }
-        
-        writeTimer.Dispose();
 
         // ════════════════════════════════════════════════════════════════
         // CLEANUP
         // ════════════════════════════════════════════════════════════════
         await conduit.DisconnectAllAsync();
         await conduit.DisposeAsync();
-        
+
         Console.WriteLine("✅ Disconnected. Goodbye!");
     }
 }

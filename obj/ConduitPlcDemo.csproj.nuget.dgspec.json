@@ -44,6 +44,18 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Autofac": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Autofac.Extensions.DependencyInjection": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "MQTTnet": {
+              "target": "Package",
+              "version": "[4.3.7.1207, )"
+            },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
               "version": "[8.0.0, )"
@@ -51,6 +63,10 @@
             "Microsoft.Extensions.Logging.Console": {
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "SimpleInjector": {
+              "target": "Package",
+              "version": "[5.4.6, )"
             }
           },
           "imports": [
