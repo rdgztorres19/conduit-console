@@ -140,7 +140,7 @@ class Program
                 var tagPath = "ngpSampleCurrent.pallets[0].cavities[0].siteNumber";
                 
                 Console.WriteLine($"✏️ Writing {randomValue} to {tagPath}");
-                await plcConnection.WriteTagAsync(tagPath, randomValue);
+                //await plcConnection.WriteTagAsync(tagPath, randomValue);
                 Console.WriteLine($"✅ Write successful");
             }
             catch (Exception ex)
