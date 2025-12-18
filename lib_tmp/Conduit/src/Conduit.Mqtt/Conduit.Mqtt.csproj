@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- NuGet Package Info -->
+    <PackageId>Conduit.Mqtt</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Conduit Team</Authors>
+    <Description>MQTT implementation for Conduit with attribute-based topic subscription discovery.</Description>
+    <PackageTags>servicebus;mqtt;messaging;pubsub;mqttnet;conduit</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Conduit.Core\Conduit.Core.csproj" />
+  </ItemGroup>
+
+</Project>
