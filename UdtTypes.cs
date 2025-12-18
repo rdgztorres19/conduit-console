@@ -6,7 +6,7 @@ namespace ConduitPlcDemo;
 /// <summary>
 /// Represents a Logix STRING type (default 82 bytes).
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class LOGIX_STRING
 {
     /// <summary>
@@ -40,7 +40,7 @@ public class LOGIX_STRING
 /// <summary>
 /// Top-level sample structure.
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class STRUCT_samples
 {
     public STRUCT_samples_base data = new();
@@ -62,7 +62,7 @@ public class STRUCT_samples
 /// <summary>
 /// Sample base data (IDs and timestamps).
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class STRUCT_samples_base
 {
     public LOGIX_STRING sampleId = new();
@@ -91,7 +91,7 @@ public class STRUCT_samples_base
 /// <summary>
 /// Pallet structure (contains 8 cavities).
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class STRUCT_pallets
 {
     public STRUCT_pallets_base data = new();
@@ -113,7 +113,7 @@ public class STRUCT_pallets
 /// <summary>
 /// Pallet base data (RFID, type, curvature).
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class STRUCT_pallets_base
 {
     public LOGIX_STRING rfid = new();
@@ -142,7 +142,7 @@ public class STRUCT_pallets_base
 /// <summary>
 /// Cavity structure (site, lot number, position, analysis).
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class STRUCT_cavities
 {
     public int site = 0;
@@ -178,7 +178,7 @@ public class STRUCT_cavities
 /// <summary>
 /// Interferometer position (X, Y, Z coordinates).
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class STRUCT_interferometer_position
 {
     public float xlocMm;
@@ -199,7 +199,7 @@ public class STRUCT_interferometer_position
 /// <summary>
 /// Interferometer analysis result (2×DINT).
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public class STRUCT_interferometer_analysis
 {
     public int measurement_status;
