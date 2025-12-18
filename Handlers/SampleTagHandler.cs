@@ -13,7 +13,7 @@ namespace ConduitPlcDemo.Handlers;
 /// Tag del ejemplo de JNJ: "ngpSampleCurrent"
 /// Este es un UDT complejo con samples, pallets y cavities.
 /// </summary>
-[AsCommSubscribe("plc1", "ngpSampleCurrent", pollingIntervalMs: 1000, OnChangeOnly = true)]
+[AsCommSubscribe("plc1", "ngpSampleCurrent", pollingIntervalMs: 1000, OnChangeOnly = false)]
 public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samples>>
 {
     private readonly ILogger<SampleTagHandler> _logger;

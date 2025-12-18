@@ -28,7 +28,7 @@ class Program
         services.AddLogging(builder =>
         {
             builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Information);
+            builder.SetMinimumLevel(LogLevel.Warning); // Reduce noise - solo muestra warnings y errores
         });
 
         var serviceProvider = services.BuildServiceProvider();
@@ -126,8 +126,7 @@ class Program
         // ════════════════════════════════════════════════════════════════
         // HANDLERS AUTOMÁTICOS
         // ════════════════════════════════════════════════════════════════
-        Console.WriteLine("📡 Starting automatic handlers...");
-        Console.WriteLine("   - InterferometerAnalysisHandler (Unsolicited mode - 10ms)");
+        Console.WriteLine("📡 Automatic handler active:");
         Console.WriteLine("   - SampleTagHandler (Polling mode - 1000ms)");
         Console.WriteLine();
         Console.WriteLine("Press CTRL+C to exit\n");
