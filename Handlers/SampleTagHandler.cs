@@ -2,6 +2,7 @@ using Conduit.AsComm.Attributes;
 using Conduit.AsComm.Messages;
 using Conduit.Core.Abstractions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ConduitPlcDemo.Handlers;
 
@@ -18,6 +19,13 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
     private readonly ILogger<SampleTagHandler> _logger;
     private int _updateCount = 0;
 
+    // Constructor sin parámetros para Conduit
+    public SampleTagHandler()
+    {
+        _logger = NullLogger<SampleTagHandler>.Instance;
+    }
+
+    // Constructor con DI (opcional, si se usa con DI)
     public SampleTagHandler(ILogger<SampleTagHandler> logger)
     {
         _logger = logger;

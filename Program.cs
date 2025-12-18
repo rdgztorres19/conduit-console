@@ -35,16 +35,20 @@ class Program
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         // ════════════════════════════════════════════════════════════════
-        // CONFIGURAR CONEXIÓN PLC - Misma config que JNJ
+        // CONFIGURAR CONDUIT CON PLC - Igual que ConsoleWithAutofac
         // ════════════════════════════════════════════════════════════════
-        var plcConnection = AsCommClientBuilder.Create()
-            .WithConnectionName("plc1")
-            .WithPlc(plcIp, cpuSlot: slot)
-            .WithDefaultPollingInterval(100) // 100ms default polling
-            .WithAutoReconnect(enabled: false, maxDelaySeconds: 30) // Desactivar auto-reconnect para ver el error real
-            .WithLoggerFactory(loggerFactory) // ⚠️ IMPORTANTE: Para ver los logs internos de Conduit
-            .WithHandlersFromEntryAssembly()
+        var conduit = ConduitBuilder.Create()
+            .WithServiceProvider(serviceProvider)  // 👈 Más simple - no necesita DelegateHandlerActivator
+            .AddAsCommConnection(plc => plc
+                .WithConnectionName("plc1")
+                .WithPlc(plcIp, cpuSlot: slot)
+                .WithDefaultPollingInterval(100)
+                .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
+                .WithLoggerFactory(loggerFactory)
+                .WithHandlersFromEntryAssembly())
             .Build();
+        
+        var plcConnection = conduit.GetConnection<IAsCommConnection>();
 
         // Suscribirse a cambios de estado para debug
         plcConnection.StateChanged += (sender, e) =>
@@ -63,7 +67,7 @@ class Program
         
         try
         {
-            await plcConnection.ConnectAsync();
+            await conduit.ConnectAllAsync();
             
             // Esperar un poco para ver si cambia de estado
             await Task.Delay(500);
@@ -149,8 +153,8 @@ class Program
         // ════════════════════════════════════════════════════════════════
         // CLEANUP
         // ════════════════════════════════════════════════════════════════
-        await plcConnection.DisconnectAsync();
-        await plcConnection.DisposeAsync();
+        await conduit.DisconnectAllAsync();
+        await conduit.DisposeAsync();
         
         Console.WriteLine("✅ Disconnected. Goodbye!");
     }
