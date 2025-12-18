@@ -4,6 +4,8 @@ using Conduit.Core;
 using Conduit.AsComm;
 using Conduit.Mqtt;
 using ConduitPlcDemo.Services;
+using Conduit.Core.Events;
+using ConduitPlcDemo.Handlers.Events;
 
 namespace ConduitPlcDemo;
 
@@ -34,13 +36,13 @@ class Program
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
             .WithActivator(diContainer.GetActivator())
-            .AddAsCommConnection(plc => plc
-                .WithConnectionName("plc1")
-                .WithPlc(plcIp, cpuSlot: slot)
-                .WithDefaultPollingInterval(100)
-                .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
-                .WithLoggerFactory(loggerFactory)
-                .WithHandlersFromEntryAssembly())
+            // .AddAsCommConnection(plc => plc
+            //     .WithConnectionName("plc1")
+            //     .WithPlc(plcIp, cpuSlot: slot)
+            //     .WithDefaultPollingInterval(100)
+            //     .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
+            //     .WithLoggerFactory(loggerFactory)
+            //     .WithHandlersFromEntryAssembly())
             .AddMqttConnection(mqtt => mqtt
                 .WithConnectionName("mqtt")
                 .WithBroker("66.179.188.92", 1883)
@@ -90,6 +92,17 @@ class Program
             // await asCommDemoService.ReadSampleTagAsync();
             // await asCommDemoService.StartSubscriptionAsync();
             // asCommDemoService.StartPeriodicWrites();
+
+
+            // ════════════════════════════════════════════════════════════════
+            // DEMO: Emit temperature events every 5 seconds
+            // ════════════════════════════════════════════════════════════════
+            var random = new Random();
+
+            var timer = new Timer(async _ =>
+            {
+                await EventMediator.Global.EmitAsync("tempChanged", new TemperatureChangedEvent(random.Next(1, 101)));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {

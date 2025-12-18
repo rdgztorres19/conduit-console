@@ -35,7 +35,7 @@
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/obj/Debug/net8.0/ref/ConduitPlcDemo.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/libs/Conduit.Mqtt.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.Mqtt.dll
-/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/MQTTnet.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Autofac.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Autofac.Extensions.DependencyInjection.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/SimpleInjector.dll
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/MQTTnet.dll
