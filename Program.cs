@@ -117,8 +117,13 @@ class Program
         {
             Console.WriteLine($"   MeasurementStatus: {result.Value.MeasurementStatus}");
             Console.WriteLine($"   Result: {result.Value.Result}");
-        }
-        Console.WriteLine();
+        }        else
+        {
+            Console.WriteLine($"   ❌ ERROR: Tag returned {result.Quality} quality!");
+            Console.WriteLine($"   💡 Check if tag name is correct: '{tagToRead}'");
+            Console.WriteLine($"   💡 Verify the tag exists in the PLC controller");
+            Console.WriteLine($"   💡 Try reading a simple tag first (like 'Local:0:I.Data' or a basic DINT tag)");
+        }        Console.WriteLine();
 
         // LEER TAG DE SAMPLE (UDT completo)
         // ════════════════════════════════════════════════════════════════
@@ -136,8 +141,12 @@ class Program
             {
                 Console.WriteLine($"   Pallet[0] RFID: {s.Pallets[0].Data.Rfid.Value}");
             }
-        }
-        Console.WriteLine();
+        }        else
+        {
+            Console.WriteLine($"   ❌ ERROR: Tag returned {sampleResult.Quality} quality!");
+            Console.WriteLine($"   💡 Check if tag 'ngpSampleCurrent' exists in the PLC");
+            Console.WriteLine($"   💡 Verify it's in the correct scope (Controller vs Program scope)");
+        }        Console.WriteLine();
 
         // ════════════════════════════════════════════════════════════════
         // HANDLERS AUTOMÁTICOS
