@@ -39,9 +39,19 @@ class Program
             .WithConnectionName("plc1")
             .WithPlc(plcIp, cpuSlot: slot)
             .WithDefaultPollingInterval(100) // 100ms default polling
-            .WithAutoReconnect(enabled: true, maxDelaySeconds: 30)
+            .WithAutoReconnect(enabled: false, maxDelaySeconds: 30) // Desactivar auto-reconnect para ver el error real
             .WithHandlersFromEntryAssembly()
             .Build();
+
+        // Suscribirse a cambios de estado para debug
+        plcConnection.StateChanged += (sender, e) =>
+        {
+            Console.WriteLine($"🔄 State changed: {e.PreviousState} → {e.CurrentState}");
+            if (e.Exception != null)
+            {
+                Console.WriteLine($"   Error: {e.Exception.Message}");
+            }
+        };
 
         // ════════════════════════════════════════════════════════════════
         // CONECTAR
@@ -52,6 +62,11 @@ class Program
         {
             await plcConnection.ConnectAsync();
             
+            // Esperar un poco para ver si cambia de estado
+            await Task.Delay(500);
+            
+            Console.WriteLine($"Connection state: {plcConnection.State}");
+            
             if (!plcConnection.IsConnected)
             {
                 Console.WriteLine($"❌ Connection failed. State: {plcConnection.State}");
@@ -60,6 +75,7 @@ class Program
                 Console.WriteLine("   - Incorrect slot number");
                 Console.WriteLine("   - ASComm IoT license not installed/valid");
                 Console.WriteLine("   - Firewall blocking connection");
+                Console.WriteLine($"\n💡 Verify: Can you ping {plcIp}?");
                 return;
             }
             
@@ -68,6 +84,11 @@ class Program
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Connection error: {ex.Message}");
+            Console.WriteLine($"   Type: {ex.GetType().Name}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"   Inner: {ex.InnerException.Message}");
+            }
             return;
         }
 
