@@ -36,13 +36,13 @@ class Program
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
             .WithActivator(diContainer.GetActivator())
-            // .AddAsCommConnection(plc => plc
-            //     .WithConnectionName("plc1")
-            //     .WithPlc(plcIp, cpuSlot: slot)
-            //     .WithDefaultPollingInterval(100)
-            //     .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
-            //     .WithLoggerFactory(loggerFactory)
-            //     .WithHandlersFromEntryAssembly())
+            .AddAsCommConnection(plc => plc
+                .WithConnectionName("plc1")
+                .WithPlc(plcIp, cpuSlot: slot)
+                .WithDefaultPollingInterval(100)
+                .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
+                .WithLoggerFactory(loggerFactory)
+                .WithHandlersFromEntryAssembly())
             .AddMqttConnection(mqtt => mqtt
                 .WithConnectionName("mqtt")
                 .WithBroker("66.179.188.92", 1883)
