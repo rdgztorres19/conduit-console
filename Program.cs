@@ -87,9 +87,9 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar AsCommDemoService
             // ════════════════════════════════════════════════════════════════
-            // var plcConnection = conduit.GetConnection<IAsCommConnection>();
-            // var asCommDemoService = new AsCommDemoService(plcConnection);
-            // await asCommDemoService.ReadSampleTagAsync();
+            var plcConnection = conduit.GetConnection<IAsCommConnection>();
+            var asCommDemoService = new AsCommDemoService(plcConnection);
+            await asCommDemoService.ReadSampleTagAsync();
             // await asCommDemoService.StartSubscriptionAsync();
             // asCommDemoService.StartPeriodicWrites();
 

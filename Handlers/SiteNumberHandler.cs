@@ -10,7 +10,7 @@ namespace ConduitPlcDemo.Handlers;
 /// Handler que lee solo el campo siteNumber de la primera cavity del primer pallet.
 /// Lee directamente el path: ngpSampleCurrent.pallets[0].cavities[0].siteNumber
 /// </summary>
-// [DisableHandler] 
+[DisableHandler] 
 [AsCommSubscribe("plc1", "ngpSampleCurrent.pallets[0].cavities[0].siteNumber", pollingIntervalMs: 1000, OnChangeOnly = false)]
 [AsCommSubscribe("plc1", "ngpSampleCurrent.pallets[0].cavities[1].siteNumber", pollingIntervalMs: 1000, OnChangeOnly = false)]
 public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<int>>
