@@ -97,12 +97,12 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // DEMO: Emit temperature events every 5 seconds
             // ════════════════════════════════════════════════════════════════
-            var random = new Random();
+            // var random = new Random();
 
-            var timer = new Timer(async _ =>
-            {
-                await EventMediator.Global.EmitAsync("tempChanged", new TemperatureChangedEvent(random.Next(1, 101)));
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            // var timer = new Timer(async _ =>
+            // {
+            //     await EventMediator.Global.EmitAsync("tempChanged", new TemperatureChangedEvent(random.Next(1, 101)));
+            // }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {

@@ -12,7 +12,8 @@ namespace ConduitPlcDemo.Handlers;
 /// </summary>
 [DisableHandler] 
 [AsCommSubscribe("plc1", "ngpSampleCurrent.pallets[0].cavities[0].siteNumber", pollingIntervalMs: 1000, OnChangeOnly = false)]
-public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<int>>
+[AsCommSubscribe("plc1", "ngpSampleCurrent.pallets[0].cavities[0].siteNumber", pollingIntervalMs: 1000, OnChangeOnly = false)]
+public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<string>>
 {
     private readonly ILogger<SiteNumberHandler> _logger;
     private int _updateCount = 0;
@@ -24,7 +25,7 @@ public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<int>>
     }
 
     public Task HandleAsync(
-        TagValue<int> message,
+        TagValue<string> message,
         IMessageContext context,
         CancellationToken ct)
     {
