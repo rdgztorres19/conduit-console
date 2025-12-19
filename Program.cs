@@ -90,6 +90,7 @@ class Program
             var plcConnection = conduit.GetConnection<IAsCommConnection>();
             var asCommDemoService = new AsCommDemoService(plcConnection);
             await asCommDemoService.ReadSampleTagAsync();
+            await asCommDemoService.ReadMultipleSiteNumbersAsync();
             // await asCommDemoService.StartSubscriptionAsync();
             // asCommDemoService.StartPeriodicWrites();
 

@@ -108,25 +108,73 @@ public class AsCommDemoService
 
         var sampleResult = await _plcConnection.ReadTagAsync<STRUCT_samples>(sampleTagName);
 
-        Console.WriteLine($"   Quality: {sampleResult.Quality}");
-
-        if (sampleResult.Quality == TagQuality.Good)
+        if (sampleResult.Quality != TagQuality.Good)
         {
-            var s = sampleResult.Value;
-            Console.WriteLine($"   SampleId: {s.Data.SampleId.Value}");
-            Console.WriteLine($"   SampledOn: {s.Data.SampledOn.Value}");
-            Console.WriteLine($"   SampledBy: {s.Data.SampledBy.Value}");
-
-            if (s.Pallets?.Length > 0)
-            {
-                Console.WriteLine($"   Pallet[0] RFID: {s.Pallets[0].Data.Rfid.Value}");
-            }
-        }
-        else
-        {
-            Console.WriteLine($"   ❌ ERROR: Tag returned {sampleResult.Quality} quality!");
+            Console.WriteLine($"⚠️ Sample tag quality: {sampleResult.Quality}");
             Console.WriteLine("   💡 Check if tag 'ngpSampleCurrent' exists in the PLC");
             Console.WriteLine("   💡 Verify it's in the correct scope (Controller vs Program scope)");
+            Console.WriteLine();
+            return;
+        }
+
+        var sample = sampleResult.Value;
+        Console.WriteLine($"📦 Sample Update | SampleId: {sample.Data.SampleId.Value} | SampledOn: {sample.Data.SampledOn.Value}");
+
+        // Mostrar info del primer pallet si existe
+        if (sample.Pallets?.Length > 0)
+        {
+            var pallet = sample.Pallets[0];
+            Console.WriteLine($"   └─ Pallet[0] | RFID: {pallet.Data.Rfid.Value} | Type: {pallet.Data.CasetteType.Value}");
+
+            // Mostrar info de la primera cavity si existe
+            if (pallet.Cavities?.Length > 0)
+            {
+                var cavity = pallet.Cavities[0];
+                Console.WriteLine($"      └─ Cavity[0] | ID: {cavity.Identifier} | Site: {cavity.SiteNumber} | Lot: {cavity.LotNumber.Value}");
+            }
+        }
+
+        Console.WriteLine();
+    }
+
+    /// <summary>
+    /// Lee múltiples tags siteNumber usando ReadTagsAsync (batch read optimizado).
+    /// Demuestra cómo leer varios tags primitivos (int) en una sola operación.
+    /// </summary>
+    public async Task ReadMultipleSiteNumbersAsync()
+    {
+        var tagNames = new[]
+        {
+            "ngpSampleCurrent.pallets[0].cavities[0].siteNumber",
+            "ngpSampleCurrent.pallets[0].cavities[1].siteNumber",
+            "ngpSampleCurrent.pallets[0].cavities[2].siteNumber",
+            "ngpSampleCurrent.pallets[0].cavities[3].siteNumber"
+        };
+
+        Console.WriteLine($"📖 Reading {tagNames.Length} siteNumber tags (batch read)...");
+
+        var results = await _plcConnection.ReadTagsAsync(tagNames);
+
+        Console.WriteLine($"✅ Batch read completed: {results.Count} tags");
+        Console.WriteLine();
+
+        foreach (var tagName in tagNames)
+        {
+            if (results.TryGetValue(tagName, out var value))
+            {
+                if (value != null)
+                {
+                    Console.WriteLine($"   ✓ {tagName}: {value}");
+                }
+                else
+                {
+                    Console.WriteLine($"   ⚠️ {tagName}: null (tag may not exist or bad quality)");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"   ❌ {tagName}: not found in results");
+            }
         }
 
         Console.WriteLine();
