@@ -10,10 +10,10 @@ namespace ConduitPlcDemo.Handlers;
 /// Handler que lee solo el campo siteNumber de la primera cavity del primer pallet.
 /// Lee directamente el path: ngpSampleCurrent.pallets[0].cavities[0].siteNumber
 /// </summary>
-// [DisableHandler] 
-[AsCommSubscribe("plc1", "ngpSampleCurrent.pallets[0].cavities[0].lotNumber", pollingIntervalMs: 1000, OnChangeOnly = false)]
+[DisableHandler] 
+[AsCommSubscribe("plc1", "ngpSampleCurrent.pallets[0].cavities[0].Identifier", pollingIntervalMs: 1000, OnChangeOnly = false)]
 [AsCommSubscribe("plc1", "ngpSampleCurrent.pallets[0].cavities[0].siteNumber", pollingIntervalMs: 1000, OnChangeOnly = false)]
-public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<string>>
+public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<int>>
 {
     private readonly ILogger<SiteNumberHandler> _logger;
     private int _updateCount = 0;
@@ -25,13 +25,13 @@ public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<string>>
     }
 
     public Task HandleAsync(
-        TagValue<string> message,
+        TagValue<int> message,
         IMessageContext context,
         CancellationToken ct)
     {
         if (message.Quality != TagQuality.Good)
         {
-            _logger.LogWarning("⚠️ SiteNumber tag quality: {Quality}", message.Quality);
+            _logger.LogWarning("⚠️ {TagName} tag quality: {Quality}", message.TagName, message.Quality);
             return Task.CompletedTask;
         }
 
@@ -40,8 +40,9 @@ public class SiteNumberHandler : IMessageSubscriptionHandler<TagValue<string>>
         var previousValue = message.PreviousValue;
 
         _logger.LogInformation(
-            "🔢 [#{Count}] SiteNumber Update | Current: {Current} | Previous: {Previous} | Changed: {Changed}",
+            "🔢 [#{Count}] {TagName} Update | Current: {Current} | Previous: {Previous} | Changed: {Changed}",
             _updateCount,
+            message.TagName,
             siteNumber,
             previousValue,
             siteNumber != previousValue);
