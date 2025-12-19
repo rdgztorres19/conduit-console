@@ -98,7 +98,7 @@ public class AsCommDemoService
     }
 
     /// <summary>
-    /// Lee el tag ngpSampleCurrent y muestra información del sample.
+    /// Lee el tag ngpSampleCurrent, modifica cavities[1].siteNumber a 5, y escribe la estructura completa de vuelta.
     /// </summary>
     public async Task ReadSampleTagAsync()
     {
@@ -126,11 +126,40 @@ public class AsCommDemoService
             var pallet = sample.Pallets[0];
             Console.WriteLine($"   └─ Pallet[0] | RFID: {pallet.Data.Rfid.Value} | Type: {pallet.Data.CasetteType.Value}");
 
-            // Mostrar info de la primera cavity si existe
+            // Mostrar info de las primeras 2 cavities si existen
             if (pallet.Cavities?.Length > 0)
             {
-                var cavity = pallet.Cavities[0];
-                Console.WriteLine($"      └─ Cavity[0] | ID: {cavity.Identifier} | Site: {cavity.SiteNumber} | Lot: {cavity.LotNumber.Value}");
+                var cavity0 = pallet.Cavities[0];
+                Console.WriteLine($"      └─ Cavity[0] | ID: {cavity0.Identifier} | Site: {cavity0.SiteNumber} | Lot: {cavity0.LotNumber.Value}");
+            }
+
+            if (pallet.Cavities?.Length > 1)
+            {
+                var cavity1 = pallet.Cavities[1];
+                Console.WriteLine($"      └─ Cavity[1] | ID: {cavity1.Identifier} | Site: {cavity1.SiteNumber} | Lot: {cavity1.LotNumber.Value}");
+
+                // Modificar siteNumber de cavity[1] a 5
+                Console.WriteLine($"\n✏️ Modificando Cavity[1].SiteNumber de {cavity1.SiteNumber} a 5...");
+                cavity1.SiteNumber = 5;
+
+                // Escribir la estructura completa de vuelta
+                try
+                {
+                    await _plcConnection.WriteTagAsync(sampleTagName, sample);
+                    Console.WriteLine("✅ Estructura completa escrita exitosamente");
+
+                    // Leer de vuelta para confirmar
+                    var readBack = await _plcConnection.ReadTagAsync<STRUCT_samples>(sampleTagName);
+                    if (readBack.Quality == TagQuality.Good && readBack.Value.Pallets?.Length > 0 && readBack.Value.Pallets[0].Cavities?.Length > 1)
+                    {
+                        var newValue = readBack.Value.Pallets[0].Cavities[1].SiteNumber;
+                        Console.WriteLine($"📖 Confirmación - Cavity[1].SiteNumber ahora es: {newValue}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error escribiendo estructura: {ex.Message}");
+                }
             }
         }
 
@@ -138,8 +167,9 @@ public class AsCommDemoService
     }
 
     /// <summary>
-    /// Lee múltiples tags siteNumber usando ReadTagsAsync (batch read optimizado).
-    /// Demuestra cómo leer varios tags primitivos (int) en una sola operación.
+    /// Lee múltiples tags siteNumber usando ReadTagsAsync<int> (batch read optimizado).
+    /// Demuestra cómo leer varios tags primitivos del mismo tipo (int) en una sola operación.
+    /// Usa la sobrecarga genérica que proporciona type-safety en tiempo de compilación.
     /// </summary>
     public async Task ReadMultipleSiteNumbersAsync()
     {
@@ -151,30 +181,59 @@ public class AsCommDemoService
             "ngpSampleCurrent.pallets[0].cavities[3].siteNumber"
         };
 
-        Console.WriteLine($"📖 Reading {tagNames.Length} siteNumber tags (batch read)...");
+        Console.WriteLine($"📖 Reading {tagNames.Length} siteNumber tags (batch read with type-safety)...");
 
-        var results = await _plcConnection.ReadTagsAsync(tagNames);
+        // Usa la sobrecarga genérica ReadTagsAsync<int> para type-safety
+        var results = await _plcConnection.ReadTagsAsync<int>(tagNames);
 
         Console.WriteLine($"✅ Batch read completed: {results.Count} tags");
         Console.WriteLine();
 
         foreach (var tagName in tagNames)
         {
-            if (results.TryGetValue(tagName, out var value))
+            if (results.TryGetValue(tagName, out var siteNumber))
             {
-                if (value != null)
-                {
-                    Console.WriteLine($"   ✓ {tagName}: {value}");
-                }
-                else
-                {
-                    Console.WriteLine($"   ⚠️ {tagName}: null (tag may not exist or bad quality)");
-                }
+                // No necesita cast - el diccionario ya es Dictionary<string, int>
+                Console.WriteLine($"   ✓ {tagName}: {siteNumber}");
             }
             else
             {
                 Console.WriteLine($"   ❌ {tagName}: not found in results");
             }
+        }
+
+        Console.WriteLine();
+    }
+
+    /// <summary>
+    /// Escribe el valor 5 al tag ngpSampleCurrent.pallets[0].cavities[1].siteNumber
+    /// </summary>
+    public async Task WriteSiteNumberToCavity1Async()
+    {
+        const string tagPath = "ngpSampleCurrent.pallets[0].cavities[1].siteNumber";
+        const int newValue = 5;
+
+        Console.WriteLine($"✏️ Writing {newValue} to {tagPath}");
+
+        try
+        {
+            await _plcConnection.WriteTagAsync(tagPath, newValue);
+            Console.WriteLine("✅ Write successful");
+
+            // Leer de vuelta para confirmar
+            var readBack = await _plcConnection.ReadTagAsync<int>(tagPath);
+            if (readBack.Quality == TagQuality.Good)
+            {
+                Console.WriteLine($"📖 Read back value: {readBack.Value}");
+            }
+            else
+            {
+                Console.WriteLine($"⚠️ Read back quality: {readBack.Quality}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Write error: {ex.Message}");
         }
 
         Console.WriteLine();
@@ -197,7 +256,7 @@ public class AsCommDemoService
                 Console.WriteLine($"✏️ Writing {randomValue} to {tagPath}");
 
                 // Descomentar para activar escritura real:
-                // await _plcConnection.WriteTagAsync(tagPath, randomValue);
+                await _plcConnection.WriteTagAsync(tagPath, randomValue);
 
                 Console.WriteLine("✅ Write successful");
             }
