@@ -75,10 +75,12 @@ declare var vis: {
 
     .network-container {
       width: 100%;
-      height: 600px;
+      min-height: 600px;
+      height: 70vh;
       border: 2px solid #e1e8ed;
       border-radius: 12px;
       background: #ffffff;
+      position: relative;
     }
 
     .tree-view-container {
@@ -92,22 +94,30 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
   @ViewChild('networkContainer', { static: false }) networkContainer!: ElementRef;
   
   network: any = null;
-  showTree: boolean = false;
+  showTree: boolean = false;  // Default to graph view
   selectedNodeId: string | null = null;
 
   ngAfterViewInit() {
-    // Esperar a que vis-network se cargue
+    // Wait for vis-network to load
     this.waitForVisNetwork().then(() => {
-      if (this.treeData.length > 0) {
-        this.updateGraph();
+      if (this.treeData && this.treeData.length > 0) {
+        // Small delay to ensure container is rendered
+        setTimeout(() => {
+          this.updateGraph();
+        }, 100);
       }
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['treeData'] && !changes['treeData'].firstChange && this.network) {
+    if (changes['treeData']) {
+      if (changes['treeData'].firstChange) {
+        // First change - wait for view init
+        return;
+      }
+      // Data changed - update graph
       this.waitForVisNetwork().then(() => {
-        this.updateGraph();
+        setTimeout(() => this.updateGraph(), 50);
       });
     }
   }
@@ -179,16 +189,38 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
   }
 
   updateGraph() {
-    if (!this.networkContainer || this.showTree) return;
+    if (this.showTree) return;
+    
+    if (!this.networkContainer) {
+      console.warn('Network container not available');
+      return;
+    }
+    
+    if (!this.networkContainer.nativeElement) {
+      console.warn('Network container element not available');
+      return;
+    }
 
-    // Verificar que vis esté disponible
+    // Check if vis is available
     if (typeof vis === 'undefined' || !vis.Network || !vis.DataSet) {
       console.error('vis-network library not loaded. Please check the script tag in index.html');
       return;
     }
 
+    if (!this.treeData || this.treeData.length === 0) {
+      console.warn('No tree data to display');
+      return;
+    }
+
     try {
       const { nodes, edges } = this.buildGraphData(this.treeData);
+      
+      if (nodes.length === 0) {
+        console.warn('No nodes to display after building graph data');
+        return;
+      }
+      
+      console.log(`Building graph with ${nodes.length} nodes and ${edges.length} edges`);
       
       const data = {
         nodes: new vis.DataSet(nodes),
@@ -200,7 +232,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
           font: {
             size: 13,
             face: 'Arial',
-            color: '#2d3748'
+            color: '#111827' // Black text
           },
           borderWidth: 2,
           shadow: {
@@ -230,15 +262,15 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
             type: 'straight'
           },
           color: {
-            color: '#cbd5e0',
-            highlight: '#667eea',
-            hover: '#667eea'
+            color: '#6B7280', // Gray edges
+            highlight: '#111827', // Black on highlight
+            hover: '#374151' // Dark gray on hover
           },
           width: 2,
           selectionWidth: 3
         },
         physics: {
-          enabled: false  // Disable physics to prevent movement
+          enabled: false  // Disable physics - hierarchical layout handles positioning
         },
         interaction: {
           hover: true,
@@ -266,9 +298,20 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
 
       if (this.network) {
         this.network.destroy();
+        this.network = null;
       }
 
-      this.network = new vis.Network(this.networkContainer.nativeElement, data, options);
+      // Ensure container is visible and has dimensions
+      const container = this.networkContainer.nativeElement;
+      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+        console.warn('Container has no dimensions, waiting...');
+        setTimeout(() => this.updateGraph(), 100);
+        return;
+      }
+
+      this.network = new vis.Network(container, data, options);
+      
+      console.log('Network created successfully');
 
       // Event listeners
       this.network.on('click', (params: any) => {
@@ -290,15 +333,17 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         }
       });
 
-      // Fit view after layout is complete
+      // Fit view after network is created
       setTimeout(() => {
-        this.network.fit({
-          animation: {
-            duration: 500,
-            easingFunction: 'easeInOutQuad'
-          }
-        });
-      }, 100);
+        if (this.network) {
+          this.network.fit({
+            animation: {
+              duration: 500,
+              easingFunction: 'easeInOutQuad'
+            }
+          });
+        }
+      }, 300);
 
       this.network.on('hoverNode', (params: any) => {
         this.networkContainer.nativeElement.style.cursor = 'pointer';
@@ -313,40 +358,38 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  buildGraphData(treeData: TreeNode[], parentId: string | null = null, nodeIdCounter: { value: number } = { value: 0 }): { nodes: any[], edges: any[] } {
+  buildGraphData(treeData: TreeNode[], parentId: string | null = null, nodeIdCounter: { value: number } = { value: 0 }, level: number = 0): { nodes: any[], edges: any[] } {
     const nodes: any[] = [];
     const edges: any[] = [];
     let isRoot = true;
 
-    const processNode = (node: TreeNode, parent: string | null, isRootNode: boolean = false): string => {
+    const processNode = (node: TreeNode, parent: string | null, currentLevel: number, isRootNode: boolean = false): string => {
       const id = `node_${nodeIdCounter.value++}`;
       
-      // Determinar color según tipo
+      // Determine color by type - professional black and gray palette
       const displayKey = this.getDisplayKey(node.key);
-      let color = '#e1e8ed';
+      let color = '#E5E7EB'; // Light gray default
       let label = displayKey;
       
       // Mark root node
       if (isRootNode) {
         label = `ROOT: ${displayKey}`;
-        color = '#2D3748';
-      }
-      
-      if (node.type === 'object') {
-        color = '#4A90E2';
+        color = '#1F2937'; // Dark gray/black
+      } else if (node.type === 'object') {
+        color = '#4B5563'; // Medium gray
         label = `${displayKey}\n{Object}`;
       } else if (node.type === 'array') {
-        color = '#F5A623';
+        color = '#6B7280'; // Lighter gray
         label = `${displayKey}\n[Array(${node.children?.length || 0})]`;
       } else if (node.type === 'string') {
-        color = '#7ED321';
+        color = '#9CA3AF'; // Light gray
         const val = this.formatValue(node.value);
         label = `${displayKey}\n"${val.length > 15 ? val.substring(0, 15) + '...' : val}"`;
       } else if (node.type === 'number') {
-        color = '#BD10E0';
+        color = '#D1D5DB'; // Very light gray
         label = `${displayKey}\n${node.value}`;
       } else if (node.type === 'boolean') {
-        color = '#9013FE';
+        color = '#E5E7EB'; // Lightest gray
         label = `${displayKey}\n${node.value}`;
       }
 
@@ -359,16 +402,16 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         id: id,
         label: label,
         color: {
-          background: isRootNode ? '#2D3748' : color,
-          border: isRootNode ? '#F59E0B' : (node.changed ? '#ffc107' : (node.editable ? '#48bb78' : color)),
+          background: isRootNode ? '#111827' : color, // Black for root, gray for others
+          border: isRootNode ? '#374151' : (node.changed ? '#F59E0B' : (node.editable ? '#6B7280' : '#374151')),
           highlight: {
-            background: isRootNode ? '#4A5568' : (node.editable ? '#48bb78' : color),
-            border: '#667eea'
+            background: isRootNode ? '#1F2937' : (node.editable ? '#4B5563' : '#9CA3AF'),
+            border: '#111827' // Black border on highlight
           }
         },
         shape: isRootNode ? 'box' : (node.children ? 'box' : (node.editable ? 'diamond' : 'ellipse')),
         font: {
-          color: isRootNode ? '#FFFFFF' : '#2d3748',
+          color: isRootNode ? '#FFFFFF' : '#111827', // White text on root, black on others
           size: isRootNode ? 16 : (node.children ? 14 : 12),
           bold: isRootNode || node.editable
         },
@@ -377,7 +420,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         nodeData: node,
         borderWidth: isRootNode ? 4 : (node.changed ? 4 : 2),
         shadow: true,
-        level: isRootNode ? 0 : undefined
+        level: currentLevel  // Set level for hierarchical layout
       };
 
       if (node.editable) {
@@ -386,19 +429,18 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
 
       nodes.push(nodeConfig);
 
-      // Crear edge desde el padre
+      // Create edge from parent
       if (parent !== null) {
         edges.push({
           from: parent,
-          to: id,
-          smooth: true
+          to: id
         });
       }
 
       // Process children
-      if (node.children) {
+      if (node.children && node.children.length > 0) {
         node.children.forEach(child => {
-          processNode(child, id, false);
+          processNode(child, id, currentLevel + 1, false);
         });
       }
 
@@ -406,7 +448,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
     };
 
     treeData.forEach(node => {
-      processNode(node, parentId, isRoot);
+      processNode(node, parentId, level, isRoot);
       isRoot = false; // Only first node is root
     });
 
