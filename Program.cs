@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Conduit.Core;
-using Conduit.AsComm;
+using Conduit.EdgePlcDriver;
 using Conduit.Mqtt;
 using ConduitPlcDemo.Services;
 using Conduit.Core.Events;
@@ -36,7 +36,7 @@ class Program
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
             .WithActivator(diContainer.GetActivator())
-            .AddAsCommConnection(plc => plc
+            .AddEdgePlcDriver(plc => plc
                 .WithConnectionName("plc1")
                 .WithPlc(plcIp, cpuSlot: slot)
                 .WithDefaultPollingInterval(100)
@@ -87,7 +87,7 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar AsCommDemoService
             // ════════════════════════════════════════════════════════════════
-            var plcConnection = conduit.GetConnection<IAsCommConnection>();
+            var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
             var asCommDemoService = new AsCommDemoService(plcConnection);
             await asCommDemoService.ReadSampleTagAsync();
             await asCommDemoService.ReadMultipleSiteNumbersAsync();

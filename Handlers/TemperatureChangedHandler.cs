@@ -3,7 +3,7 @@ using Conduit.Core.Events;
 using Conduit.Core.Events.Attributes;
 using Conduit.Core.Abstractions;
 using Conduit.Mqtt;
-using Conduit.AsComm.Attributes;
+using Conduit.EdgePlcDriver.Attributes;
 
 namespace ConduitPlcDemo.Handlers.Events;
 
@@ -20,7 +20,7 @@ public record TemperatureChangedEvent(float Temperature);
 /// Uso: await _mediator.EmitAsync("tempChanged", new TemperatureChangedEvent(25.5f));
 /// </remarks>
 [Event("tempChanged")]
-// [AsCommRead("plc1", "Sensor_Temperature", typeof(float))]
+// [EdgePlcDriverRead("plc1", "Sensor_Temperature", typeof(float))]
 public class TemperatureChangedHandler : IEventHandler<TemperatureChangedEvent>
 {
     private readonly ILogger<TemperatureChangedHandler> _logger;

@@ -13,8 +13,8 @@
       <HintPath>libs\Conduit.Core.dll</HintPath>
       <Private>true</Private>
     </Reference>
-    <Reference Include="Conduit.AsComm">
-      <HintPath>libs\Conduit.AsComm.dll</HintPath>
+    <Reference Include="Conduit.EdgePlcDriver">
+      <HintPath>libs\Conduit.EdgePlcDriver.dll</HintPath>
       <Private>true</Private>
     </Reference>
     <Reference Include="Conduit.Mqtt">

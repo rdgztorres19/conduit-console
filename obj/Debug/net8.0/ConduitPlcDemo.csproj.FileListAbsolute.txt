@@ -1,5 +1,4 @@
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/libs/AutomatedSolutions.ASCommStd.dll
-/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/libs/Conduit.AsComm.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/libs/Conduit.Core.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/libs/Conduit.DependencyInjection.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/libs/Conduit.Mqtt.dll
@@ -24,7 +23,6 @@
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Microsoft.Extensions.Primitives.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/MQTTnet.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/SimpleInjector.dll
-/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.AsComm.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.Core.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.Mqtt.dll
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/AutomatedSolutions.ASCommStd.dll
@@ -40,3 +38,6 @@
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/obj/Debug/net8.0/ConduitPlcDemo.pdb
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/obj/Debug/net8.0/ConduitPlcDemo.genruntimeconfig.cache
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/obj/Debug/net8.0/ref/ConduitPlcDemo.dll
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/libs/Conduit.EdgePlcDriver.dll
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.EdgePlcDriver.dll
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.EdgePlcDriver.pdb

@@ -1,22 +1,22 @@
-using Conduit.AsComm;
-using Conduit.AsComm.Messages;
+using Conduit.EdgePlcDriver;
+using Conduit.EdgePlcDriver.Messages;
 
 namespace ConduitPlcDemo.Services;
 
 /// <summary>
-/// Servicio de demostración para operaciones ASComm (lectura y escritura al PLC).
+/// Servicio de demostración para operaciones Edge PLC Driver (lectura y escritura al PLC).
 /// Similar a MqttSubscriptionService, solo depende de la conexión PLC.
 /// </summary>
 public class AsCommDemoService
 {
-    private readonly IAsCommConnection _plcConnection;
+    private readonly IEdgePlcDriver _plcConnection;
     private readonly Random _random = new();
     private System.Threading.Timer? _writeTimer;
     private CancellationTokenSource? _cts;
     private IAsyncDisposable? _subscription;
     private int _updateCount = 0;
 
-    public AsCommDemoService(IAsCommConnection plcConnection)
+    public AsCommDemoService(IEdgePlcDriver plcConnection)
     {
         _plcConnection = plcConnection;
 
@@ -36,21 +36,21 @@ public class AsCommDemoService
     /// </summary>
     public async Task StartSubscriptionAsync(CancellationToken cancellationToken = default)
     {
-        Console.WriteLine("🚀 Starting AsComm programmatic subscription...");
+        Console.WriteLine("🚀 Starting Edge PLC Driver programmatic subscription...");
 
-        // Suscripción programática al tag (similar al atributo [AsCommSubscribe])
+        // Suscripción programática al tag (similar al atributo [EdgePlcDriverSubscribe])
         _subscription = await _plcConnection.SubscribeAsync<STRUCT_samples>(
             "ngpSampleCurrent",
             HandleSampleTagAsync,
             pollingIntervalMs: 1000,
             cancellationToken);
 
-        Console.WriteLine("✅ AsComm subscription active: ngpSampleCurrent (1000ms polling)");
+        Console.WriteLine("✅ Edge PLC Driver subscription active: ngpSampleCurrent (1000ms polling)");
     }
 
     private async Task HandleSampleTagAsync(
         TagValue<STRUCT_samples> message,
-        IAsCommMessageContext context,
+        IEdgePlcDriverMessageContext context,
         CancellationToken cancellationToken)
     {
         if (message.Quality != TagQuality.Good)
@@ -86,7 +86,7 @@ public class AsCommDemoService
     /// </summary>
     public async Task StopSubscriptionAsync()
     {
-        Console.WriteLine("🛑 Stopping AsComm subscription...");
+        Console.WriteLine("🛑 Stopping Edge PLC Driver subscription...");
         
         if (_subscription != null)
         {
@@ -94,7 +94,7 @@ public class AsCommDemoService
             _subscription = null;
         }
 
-        Console.WriteLine("✅ AsComm subscription stopped");
+        Console.WriteLine("✅ Edge PLC Driver subscription stopped");
     }
 
     /// <summary>

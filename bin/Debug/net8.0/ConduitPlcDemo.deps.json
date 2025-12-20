@@ -14,8 +14,8 @@
           "Microsoft.Extensions.DependencyInjection": "8.0.0",
           "Microsoft.Extensions.Logging.Console": "8.0.0",
           "SimpleInjector": "5.4.6",
-          "Conduit.AsComm": "1.0.0.0",
           "Conduit.Core": "1.0.0.0",
+          "Conduit.EdgePlcDriver": "1.0.0.0",
           "Conduit.Mqtt": "1.0.0.0"
         },
         "runtime": {
@@ -230,17 +230,17 @@
           "System.Text.Encodings.Web": "8.0.0"
         }
       },
-      "Conduit.AsComm/1.0.0.0": {
+      "Conduit.Core/1.0.0.0": {
         "runtime": {
-          "Conduit.AsComm.dll": {
+          "Conduit.Core.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
-      "Conduit.Core/1.0.0.0": {
+      "Conduit.EdgePlcDriver/1.0.0.0": {
         "runtime": {
-          "Conduit.Core.dll": {
+          "Conduit.EdgePlcDriver.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -431,12 +431,12 @@
       "path": "system.text.json/8.0.0",
       "hashPath": "system.text.json.8.0.0.nupkg.sha512"
     },
-    "Conduit.AsComm/1.0.0.0": {
+    "Conduit.Core/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
     },
-    "Conduit.Core/1.0.0.0": {
+    "Conduit.EdgePlcDriver/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

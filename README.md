@@ -13,7 +13,7 @@ ConduitPlcDemo/
 │   └── SampleTagHandler.cs
 ├── libs/                          ← DLLs de Conduit incluidas
 │   ├── Conduit.Core.dll
-│   └── Conduit.AsComm.dll
+│   └── Conduit.EdgePlcDriver.dll
 └── ConduitPlcDemo.csproj
 ```
 

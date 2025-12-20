@@ -1,5 +1,5 @@
-using Conduit.AsComm.Attributes;
-using Conduit.AsComm.Messages;
+using Conduit.EdgePlcDriver.Attributes;
+using Conduit.EdgePlcDriver.Messages;
 using Conduit.Core.Abstractions;
 using Conduit.Core.Attributes;
 using Microsoft.Extensions.Logging;
@@ -16,7 +16,7 @@ namespace ConduitPlcDemo.Handlers;
 /// </summary>
 /// 
 [DisableHandler] 
-[AsCommSubscribe("plc1", "ngpSampleCurrent", pollingIntervalMs: 1000, OnChangeOnly = true)]
+[EdgePlcDriverSubscribe("plc1", "ngpSampleCurrent", pollingIntervalMs: 1000, OnChangeOnly = true)]
 public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samples>>
 {
     private readonly ILogger<SampleTagHandler> _logger;
