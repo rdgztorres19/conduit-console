@@ -230,24 +230,30 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
       const options = {
         nodes: {
           font: {
-            size: 13,
+            size: 16,
             face: 'Arial',
-            color: '#111827' // Black text
+            color: '#111827', // Black text
+            bold: false
           },
-          borderWidth: 2,
+          borderWidth: 3,
           shadow: {
             enabled: true,
-            color: 'rgba(0,0,0,0.2)',
-            size: 5,
-            x: 2,
-            y: 2
+            color: 'rgba(0,0,0,0.3)',
+            size: 8,
+            x: 3,
+            y: 3
           },
-          margin: 8,
+          margin: 15,
           widthConstraint: {
-            maximum: 200
+            minimum: 120,
+            maximum: 300
           },
           heightConstraint: {
-            maximum: 100
+            minimum: 60,
+            maximum: 150
+          },
+          shapeProperties: {
+            borderRadius: 8
           }
         },
         edges: {
@@ -266,8 +272,8 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
             highlight: '#111827', // Black on highlight
             hover: '#374151' // Dark gray on hover
           },
-          width: 2,
-          selectionWidth: 3
+          width: 3,  // Thicker edges for better visibility
+          selectionWidth: 4
         },
         physics: {
           enabled: false  // Disable physics - hierarchical layout handles positioning
@@ -285,9 +291,9 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
             enabled: true,
             direction: 'LR',  // Left to Right
             sortMethod: 'directed',
-            levelSeparation: 200,
-            nodeSpacing: 150,
-            treeSpacing: 200,
+            levelSeparation: 400,  // Increased spacing between levels
+            nodeSpacing: 250,      // Increased spacing between nodes
+            treeSpacing: 300,      // Increased spacing between trees
             blockShifting: true,
             edgeMinimization: true,
             parentCentralization: true,
@@ -371,31 +377,31 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
       let color = '#E5E7EB'; // Light gray default
       let label = displayKey;
       
-      // Mark root node
+      // Mark root node - simplified labels for better readability
       if (isRootNode) {
-        label = `ROOT: ${displayKey}`;
+        label = displayKey;  // Remove "ROOT:" prefix for cleaner look
         color = '#1F2937'; // Dark gray/black
       } else if (node.type === 'object') {
         color = '#4B5563'; // Medium gray
-        label = `${displayKey}\n{Object}`;
+        label = `${displayKey}`;  // Simplified - removed {Object}
       } else if (node.type === 'array') {
         color = '#6B7280'; // Lighter gray
-        label = `${displayKey}\n[Array(${node.children?.length || 0})]`;
+        label = `${displayKey}[${node.children?.length || 0}]`;  // Simplified format
       } else if (node.type === 'string') {
         color = '#9CA3AF'; // Light gray
         const val = this.formatValue(node.value);
-        label = `${displayKey}\n"${val.length > 15 ? val.substring(0, 15) + '...' : val}"`;
+        label = `${displayKey}: ${val.length > 20 ? val.substring(0, 20) + '...' : val}`;  // Single line
       } else if (node.type === 'number') {
         color = '#D1D5DB'; // Very light gray
-        label = `${displayKey}\n${node.value}`;
+        label = `${displayKey}: ${node.value}`;  // Single line
       } else if (node.type === 'boolean') {
         color = '#E5E7EB'; // Lightest gray
-        label = `${displayKey}\n${node.value}`;
+        label = `${displayKey}: ${node.value}`;  // Single line
       }
 
-      // If editable, add indicator
+      // If editable, add indicator (inline for better readability)
       if (node.editable) {
-        label += '\n✏️';
+        label += ' ✏️';
       }
 
       const nodeConfig: any = {
@@ -412,7 +418,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         shape: isRootNode ? 'box' : (node.children ? 'box' : (node.editable ? 'diamond' : 'ellipse')),
         font: {
           color: isRootNode ? '#FFFFFF' : '#111827', // White text on root, black on others
-          size: isRootNode ? 16 : (node.children ? 14 : 12),
+          size: isRootNode ? 18 : (node.children ? 16 : 14),  // Increased font sizes
           bold: isRootNode || node.editable
         },
         value: isRootNode ? 20 : (node.children ? (node.children.length * 10) : (node.editable ? 8 : 5)),
