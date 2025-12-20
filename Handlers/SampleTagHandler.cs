@@ -2,8 +2,10 @@ using Conduit.EdgePlcDriver.Attributes;
 using Conduit.EdgePlcDriver.Messages;
 using Conduit.Core.Abstractions;
 using Conduit.Core.Attributes;
+using Conduit.Mqtt;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
 
 namespace ConduitPlcDemo.Handlers;
 
@@ -15,16 +17,19 @@ namespace ConduitPlcDemo.Handlers;
 /// Este es un UDT complejo con samples, pallets y cavities.
 /// </summary>
 /// 
-[DisableHandler] 
+// [DisableHandler] 
 [EdgePlcDriverSubscribe("plc1", "ngpSampleCurrent", pollingIntervalMs: 1000, OnChangeOnly = true)]
 public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samples>>
 {
-    private readonly ILogger<SampleTagHandler> _logger;
     private int _updateCount = 0;
+    private readonly IMqttConnection _mqtt;
+    private readonly ILogger<SampleTagHandler> _logger;
+
 
     // Constructor con DI (opcional, si se usa con DI)
-    public SampleTagHandler(ILogger<SampleTagHandler> logger)
+    public SampleTagHandler(ILogger<SampleTagHandler> logger, IMqttConnection mqtt)
     {
+        _mqtt = mqtt;
         _logger = logger;
         _logger.LogInformation("🚀 SampleTagHandler instance created with DI");
     }
@@ -73,6 +78,8 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
                     cavity.LotNumber.Value);
             }
         }
+
+        await _mqtt.PublishAsync("ngpSampleCurrent", message, ct);
 
         return Task.CompletedTask;
     }
