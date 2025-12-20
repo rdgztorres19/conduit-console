@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 using Conduit.Core;
 using Conduit.EdgePlcDriver;
 using Conduit.Mqtt;
@@ -146,16 +148,31 @@ class Program
             app.UseSwaggerUI();
         }
 
-        // Servir archivos estáticos de Angular
-        app.UseDefaultFiles();
-        app.UseStaticFiles();
-
         app.UseHttpsRedirection();
         app.UseAuthorization();
         app.MapControllers();
         
+        // Servir archivos estáticos de Angular (después de los controladores)
+        // Los archivos están en wwwroot/browser/ porque Angular 17 genera ahí
+        var browserPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "browser");
+        
+        app.UseDefaultFiles(new DefaultFilesOptions
+        {
+            FileProvider = new PhysicalFileProvider(browserPath),
+            RequestPath = ""
+        });
+        
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(browserPath),
+            RequestPath = ""
+        });
+        
         // Fallback a index.html para SPA routing
-        app.MapFallbackToFile("index.html");
+        app.MapFallbackToFile("index.html", new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(browserPath)
+        });
 
         // ════════════════════════════════════════════════════════════════
         // INFORMACIÓN DE INICIO
