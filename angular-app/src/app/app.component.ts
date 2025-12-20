@@ -33,7 +33,7 @@ import { GraphViewComponent } from './graph-view.component';
           (click)="loadStructure()"
           [disabled]="loading || !tagName.trim()"
         >
-          🔍 Buscar Estructura
+          🔍 Search Structure
         </button>
       </div>
 
@@ -47,11 +47,11 @@ import { GraphViewComponent } from './graph-view.component';
       </div>
 
       <div *ngIf="loading && !treeData" class="loading">
-        ⏳ Cargando estructura...
+        ⏳ Loading structure...
       </div>
 
       <div *ngIf="!loading && !treeData && !error" class="empty-state">
-        Ingresa un tag name y haz clic en "Buscar Estructura" para comenzar
+        Enter a tag name and click "Search Structure" to begin
       </div>
 
       <div *ngIf="treeData" class="tree-container">
@@ -130,7 +130,7 @@ export class AppComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.error?.error || err.message || 'Error al cargar el tag';
+        this.error = err.error?.error || err.message || 'Error loading tag';
         console.error('Error loading tag:', err);
       }
     });
@@ -318,7 +318,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadStructure();
       },
       error: (err) => {
-        this.error = err.error?.error || 'Error al escribir el valor';
+        this.error = err.error?.error || 'Error writing value';
         console.error('Error writing value:', err);
       }
     });

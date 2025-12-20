@@ -17,10 +17,10 @@ declare var vis: {
     <div class="graph-container">
       <div class="graph-controls">
         <button class="btn-graph" (click)="toggleView()">
-          {{ showTree ? '📊 Ver Grafo' : '🌳 Ver Árbol' }}
+          {{ showTree ? '📊 View Graph' : '🌳 View Tree' }}
         </button>
         <button class="btn-graph" (click)="fitNetwork()" *ngIf="!showTree">
-          🔍 Ajustar Vista
+          🔍 Fit View
         </button>
         <button class="btn-graph" (click)="resetView()" *ngIf="!showTree">
           🔄 Reset
@@ -160,11 +160,16 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
     if (this.network) {
       this.network.setOptions({
         physics: {
-          enabled: true
+          enabled: false
         }
       });
       setTimeout(() => {
-        this.network.fit();
+        this.network.fit({
+          animation: {
+            duration: 500,
+            easingFunction: 'easeInOutQuad'
+          }
+        });
       }, 100);
     }
   }
@@ -222,8 +227,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
             }
           },
           smooth: {
-            type: 'curvedCW',
-            roundness: 0.3
+            type: 'straight'
           },
           color: {
             color: '#cbd5e0',
@@ -234,20 +238,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
           selectionWidth: 3
         },
         physics: {
-          enabled: true,
-          stabilization: {
-            enabled: true,
-            iterations: 200,
-            fit: true
-          },
-          barnesHut: {
-            gravitationalConstant: -3000,
-            centralGravity: 0.2,
-            springLength: 150,
-            springConstant: 0.05,
-            damping: 0.1,
-            avoidOverlap: 0.8
-          }
+          enabled: false  // Disable physics to prevent movement
         },
         interaction: {
           hover: true,
@@ -258,7 +249,18 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
           navigationButtons: true
         },
         layout: {
-          improvedLayout: true
+          hierarchical: {
+            enabled: true,
+            direction: 'LR',  // Left to Right
+            sortMethod: 'directed',
+            levelSeparation: 200,
+            nodeSpacing: 150,
+            treeSpacing: 200,
+            blockShifting: true,
+            edgeMinimization: true,
+            parentCentralization: true,
+            shakeTowards: 'roots'
+          }
         }
       };
 
@@ -288,9 +290,15 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         }
       });
 
-      this.network.on('stabilizationEnd', () => {
-        this.network.fit();
-      });
+      // Fit view after layout is complete
+      setTimeout(() => {
+        this.network.fit({
+          animation: {
+            duration: 500,
+            easingFunction: 'easeInOutQuad'
+          }
+        });
+      }, 100);
 
       this.network.on('hoverNode', (params: any) => {
         this.networkContainer.nativeElement.style.cursor = 'pointer';
@@ -308,14 +316,21 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
   buildGraphData(treeData: TreeNode[], parentId: string | null = null, nodeIdCounter: { value: number } = { value: 0 }): { nodes: any[], edges: any[] } {
     const nodes: any[] = [];
     const edges: any[] = [];
+    let isRoot = true;
 
-    const processNode = (node: TreeNode, parent: string | null): string => {
+    const processNode = (node: TreeNode, parent: string | null, isRootNode: boolean = false): string => {
       const id = `node_${nodeIdCounter.value++}`;
       
       // Determinar color según tipo
       const displayKey = this.getDisplayKey(node.key);
       let color = '#e1e8ed';
       let label = displayKey;
+      
+      // Mark root node
+      if (isRootNode) {
+        label = `ROOT: ${displayKey}`;
+        color = '#2D3748';
+      }
       
       if (node.type === 'object') {
         color = '#4A90E2';
@@ -335,7 +350,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         label = `${displayKey}\n${node.value}`;
       }
 
-      // Si es editable, agregar indicador
+      // If editable, add indicator
       if (node.editable) {
         label += '\n✏️';
       }
@@ -344,24 +359,25 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         id: id,
         label: label,
         color: {
-          background: color,
-          border: node.changed ? '#ffc107' : (node.editable ? '#48bb78' : color),
+          background: isRootNode ? '#2D3748' : color,
+          border: isRootNode ? '#F59E0B' : (node.changed ? '#ffc107' : (node.editable ? '#48bb78' : color)),
           highlight: {
-            background: node.editable ? '#48bb78' : color,
+            background: isRootNode ? '#4A5568' : (node.editable ? '#48bb78' : color),
             border: '#667eea'
           }
         },
-        shape: node.children ? 'box' : (node.editable ? 'diamond' : 'ellipse'),
+        shape: isRootNode ? 'box' : (node.children ? 'box' : (node.editable ? 'diamond' : 'ellipse')),
         font: {
-          color: '#2d3748',
-          size: node.children ? 14 : 12,
-          bold: node.editable
+          color: isRootNode ? '#FFFFFF' : '#2d3748',
+          size: isRootNode ? 16 : (node.children ? 14 : 12),
+          bold: isRootNode || node.editable
         },
-        value: node.children ? (node.children.length * 10) : (node.editable ? 8 : 5),
+        value: isRootNode ? 20 : (node.children ? (node.children.length * 10) : (node.editable ? 8 : 5)),
         editable: node.editable,
         nodeData: node,
-        borderWidth: node.changed ? 4 : 2,
-        shadow: true
+        borderWidth: isRootNode ? 4 : (node.changed ? 4 : 2),
+        shadow: true,
+        level: isRootNode ? 0 : undefined
       };
 
       if (node.editable) {
@@ -379,10 +395,10 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         });
       }
 
-      // Procesar hijos
+      // Process children
       if (node.children) {
         node.children.forEach(child => {
-          processNode(child, id);
+          processNode(child, id, false);
         });
       }
 
@@ -390,7 +406,8 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
     };
 
     treeData.forEach(node => {
-      processNode(node, parentId);
+      processNode(node, parentId, isRoot);
+      isRoot = false; // Only first node is root
     });
 
     return { nodes, edges };
