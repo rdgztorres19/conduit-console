@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { interval, Subscription } from 'rxjs';
 import { TreeNodeComponent, TreeNode } from './tree-node.component';
+import { GraphViewComponent } from './graph-view.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, TreeNodeComponent],
+  imports: [CommonModule, FormsModule, TreeNodeComponent, GraphViewComponent],
   styleUrls: [],
   template: `
     <div class="container">
@@ -54,11 +55,10 @@ import { TreeNodeComponent, TreeNode } from './tree-node.component';
       </div>
 
       <div *ngIf="treeData" class="tree-container">
-        <app-tree-node
-          *ngFor="let node of treeData"
-          [node]="node"
+        <app-graph-view 
+          [treeData]="treeData"
           (writeValue)="writeValue($event)"
-        ></app-tree-node>
+        ></app-graph-view>
       </div>
     </div>
   `,
