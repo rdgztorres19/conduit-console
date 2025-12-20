@@ -34,7 +34,7 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
         _logger.LogInformation("🚀 SampleTagHandler instance created with DI");
     }
 
-    public Task HandleAsync(
+    public async Task HandleAsync(
         TagValue<STRUCT_samples> message,
         IMessageContext context,
         CancellationToken ct)
@@ -44,7 +44,7 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
         if (message.Quality != TagQuality.Good)
         {
             _logger.LogWarning("⚠️ Sample tag quality: {Quality}", message.Quality);
-            return Task.CompletedTask;
+            return;
         }
 
         _updateCount++;
@@ -79,8 +79,6 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
             }
         }
 
-        await _mqtt.PublishAsync("ngpSampleCurrent", message, ct);
-
-        return Task.CompletedTask;
+        await _mqtt.Publisher.PublishAsync("ngpSampleCurrent", message, cancellationToken: ct);
     }
 }
