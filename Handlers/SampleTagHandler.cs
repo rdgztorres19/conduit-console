@@ -22,14 +22,14 @@ namespace ConduitPlcDemo.Handlers;
 public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samples>>
 {
     private int _updateCount = 0;
-    private readonly IMqttConnection _mqtt;
+    private readonly IMqttPublisher _publisher;
     private readonly ILogger<SampleTagHandler> _logger;
 
 
     // Constructor con DI (opcional, si se usa con DI)
-    public SampleTagHandler(ILogger<SampleTagHandler> logger, IMqttConnection mqtt)
+    public SampleTagHandler(ILogger<SampleTagHandler> logger, IMqttPublisher publisher)
     {
-        _mqtt = mqtt;
+        _publisher = publisher;
         _logger = logger;
         _logger.LogInformation("🚀 SampleTagHandler instance created with DI");
     }
@@ -79,6 +79,6 @@ public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samp
             }
         }
 
-        await _mqtt.Publisher.PublishAsync("ngpSampleCurrent", message, cancellationToken: ct);
+        await _publisher.PublishAsync("ngpSampleCurrent", message, cancellationToken: ct);
     }
 }
