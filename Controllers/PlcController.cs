@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Conduit.EdgePlcDriver;
 using Conduit.EdgePlcDriver.Messages;
+using ConduitPlcDemo;
 
 namespace ConduitPlcDemo.Controllers;
 
@@ -48,15 +49,31 @@ public class PlcController : ControllerBase
                 return StatusCode(503, new { error = "PLC not connected", state = _plcConnection.State.ToString() });
             }
 
-            var result = await _plcConnection.ReadTagAsync<object>(tagName, cancellationToken);
+            // Si es ngpSampleCurrent, leer como STRUCT_samples
+            if (tagName.Equals("ngpSampleCurrent", StringComparison.OrdinalIgnoreCase))
+            {
+                var result = await _plcConnection.ReadTagAsync<STRUCT_samples>(tagName, cancellationToken);
+                
+                return Ok(new
+                {
+                    tagName = result.TagName,
+                    value = result.Value, // Esto será la estructura STRUCT_samples
+                    quality = result.Quality.ToString(),
+                    timestamp = result.Timestamp,
+                    previousValue = result.PreviousValue
+                });
+            }
+            
+            // Para otros tags, intentar leer como object
+            var genericResult = await _plcConnection.ReadTagAsync<object>(tagName, cancellationToken);
             
             return Ok(new
             {
-                tagName = result.TagName,
-                value = result.Value,
-                quality = result.Quality.ToString(),
-                timestamp = result.Timestamp,
-                previousValue = result.PreviousValue
+                tagName = genericResult.TagName,
+                value = genericResult.Value,
+                quality = genericResult.Quality.ToString(),
+                timestamp = genericResult.Timestamp,
+                previousValue = genericResult.PreviousValue
             });
         }
         catch (Exception ex)
