@@ -22,6 +22,16 @@ class Program
         const int slot = 0;
 
         // ════════════════════════════════════════════════════════════════
+        // WEB API SETUP
+        // ════════════════════════════════════════════════════════════════
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Configurar servicios de la aplicación
+        builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+
+        // ════════════════════════════════════════════════════════════════
         // DEPENDENCY INJECTION
         // ════════════════════════════════════════════════════════════════
         var diContainer = DIContainerBuilder.Create()
@@ -30,6 +40,9 @@ class Program
 
         var loggerFactory = diContainer.GetLoggerFactory();
         var serviceProvider = diContainer.GetServiceProvider();
+        
+        // Agregar el serviceProvider personalizado a los servicios de Web API
+        builder.Services.AddSingleton(serviceProvider);
 
         // ════════════════════════════════════════════════════════════════
         // CONFIGURAR CONDUIT CON PLC
@@ -48,13 +61,19 @@ class Program
                 .WithBroker("66.179.188.92", 1883)
                 .WithCredentials("admin", "sbrQp10")
                 .WithTls(enabled: false)
-                .WithClientId($"console-simpleinjector-{Environment.MachineName}-{Guid.NewGuid():N}"[..50])
+                .WithClientId($"webapi-simpleinjector-{Environment.MachineName}-{Guid.NewGuid():N}"[..50])
                 .WithAutoReconnect(enabled: true, maxDelaySeconds: 30)
                 .WithKeepAlive(60)
                 .WithHandlersFromEntryAssembly())
             .Build();
 
         var mqttConnection = conduit.GetConnection<IMqttConnection>();
+        var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
+
+        // Registrar conexiones en el contenedor de servicios para los controladores
+        builder.Services.AddSingleton(plcConnection);
+        builder.Services.AddSingleton(mqttConnection);
+        builder.Services.AddSingleton(conduit);
 
         // ════════════════════════════════════════════════════════════════
         // CONECTAR AL MQTT
@@ -87,10 +106,9 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar AsCommDemoService
             // ════════════════════════════════════════════════════════════════
-            var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
-            var asCommDemoService = new AsCommDemoService(plcConnection);
-            await asCommDemoService.ReadSampleTagAsync();
-            await asCommDemoService.ReadMultipleSiteNumbersAsync();
+            // var asCommDemoService = new AsCommDemoService(plcConnection);
+            // await asCommDemoService.ReadSampleTagAsync();
+            // await asCommDemoService.ReadMultipleSiteNumbersAsync();
             //await asCommDemoService.StartSubscriptionAsync();
             //asCommDemoService.StartPeriodicWrites();
 
@@ -117,15 +135,45 @@ class Program
         }
 
         // ════════════════════════════════════════════════════════════════
-        // ESPERAR MENSAJES MQTT
+        // CONFIGURAR WEB API
+        // ════════════════════════════════════════════════════════════════
+        var app = builder.Build();
+
+        // Configurar el pipeline HTTP
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        // Servir archivos estáticos de Angular
+        app.UseDefaultFiles();
+        app.UseStaticFiles();
+
+        app.UseHttpsRedirection();
+        app.UseAuthorization();
+        app.MapControllers();
+        
+        // Fallback a index.html para SPA routing
+        app.MapFallbackToFile("index.html");
+
+        // ════════════════════════════════════════════════════════════════
+        // INFORMACIÓN DE INICIO
         // ════════════════════════════════════════════════════════════════
         Console.WriteLine("📡 MQTT Handlers active:");
         Console.WriteLine("   - MqttRealtimeHandler (attribute-based)");
         Console.WriteLine("   - MqttSubscriptionService (programmatic)");
         Console.WriteLine();
+        Console.WriteLine("🌐 Web API running:");
+        Console.WriteLine("   - Swagger UI: https://localhost:5001/swagger (or http://localhost:5000/swagger)");
+        Console.WriteLine("   - API Base: /api/plc and /api/mqtt");
+        Console.WriteLine();
         Console.WriteLine("Press CTRL+C to exit\n");
         Console.WriteLine("════════════════════════════════════════════════════════════════");
 
+        // ════════════════════════════════════════════════════════════════
+        // EJECUTAR WEB API Y ESPERAR
+        // ════════════════════════════════════════════════════════════════
         var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (s, e) =>
         {
@@ -135,7 +183,9 @@ class Program
 
         try
         {
-            await Task.Delay(Timeout.Infinite, cts.Token);
+            // Ejecutar Web API en background y esperar
+            var webApiTask = app.RunAsync(cts.Token);
+            await webApiTask;
         }
         catch (TaskCanceledException)
         {
@@ -147,6 +197,7 @@ class Program
         // ════════════════════════════════════════════════════════════════
         await conduit.DisconnectAllAsync();
         await conduit.DisposeAsync();
+        await app.DisposeAsync();
 
         Console.WriteLine("✅ Disconnected. Goodbye!");
     }
