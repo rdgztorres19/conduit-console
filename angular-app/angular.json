@@ -27,9 +27,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [
-              "node_modules/vis-network/dist/vis-network.min.js"
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {

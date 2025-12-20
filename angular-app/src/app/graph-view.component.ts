@@ -96,22 +96,53 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
   selectedNodeId: string | null = null;
 
   ngAfterViewInit() {
-    if (this.treeData.length > 0) {
-      this.updateGraph();
-    }
+    // Esperar a que vis-network se cargue
+    this.waitForVisNetwork().then(() => {
+      if (this.treeData.length > 0) {
+        this.updateGraph();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['treeData'] && !changes['treeData'].firstChange && this.network) {
-      this.updateGraph();
+      this.waitForVisNetwork().then(() => {
+        this.updateGraph();
+      });
     }
   }
 
   toggleView() {
     this.showTree = !this.showTree;
     if (!this.showTree && this.treeData.length > 0) {
-      setTimeout(() => this.updateGraph(), 100);
+      this.waitForVisNetwork().then(() => {
+        setTimeout(() => this.updateGraph(), 100);
+      });
     }
+  }
+
+  private waitForVisNetwork(): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof vis !== 'undefined' && vis.Network) {
+        resolve();
+        return;
+      }
+
+      // Intentar esperar hasta que vis esté disponible
+      let attempts = 0;
+      const maxAttempts = 50;
+      const checkInterval = setInterval(() => {
+        attempts++;
+        if (typeof vis !== 'undefined' && vis.Network) {
+          clearInterval(checkInterval);
+          resolve();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+          console.error('vis-network failed to load after 5 seconds');
+          resolve(); // Resolver de todos modos para no bloquear
+        }
+      }, 100);
+    });
   }
 
   fitNetwork() {
@@ -146,7 +177,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
     if (!this.networkContainer || this.showTree) return;
 
     // Verificar que vis esté disponible
-    if (typeof vis === 'undefined') {
+    if (typeof vis === 'undefined' || !vis.Network || !vis.DataSet) {
       console.error('vis-network library not loaded. Please check the script tag in index.html');
       return;
     }

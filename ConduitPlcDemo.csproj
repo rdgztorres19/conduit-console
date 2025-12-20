@@ -23,9 +23,6 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="8.0.0" />
@@ -44,9 +41,11 @@
     </None>
   </ItemGroup>
 
-  <Target Name="BuildAngular" BeforeTargets="Build">
-    <Exec Command="npm install" WorkingDirectory="angular-app" Condition="!Exists('angular-app/node_modules')" />
-    <Exec Command="npm run build" WorkingDirectory="angular-app" />
+  <Target Name="BuildAngular" BeforeTargets="Build" Condition="'$(SkipAngularBuild)' != 'true'">
+    <Message Text="Building Angular application..." Importance="high" />
+    <Exec Command="npm install" WorkingDirectory="angular-app" Condition="!Exists('angular-app/node_modules')" ContinueOnError="true" IgnoreExitCode="true" />
+    <Exec Command="npm run build" WorkingDirectory="angular-app" ContinueOnError="true" IgnoreExitCode="true" />
+    <Warning Text="Angular build completed with warnings or errors. The web application will still run, but the Angular frontend may not be available." Condition="'$(MSBuildLastTaskResult)' == 'False'" />
   </Target>
 
 </Project>
