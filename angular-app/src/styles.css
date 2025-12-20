@@ -139,117 +139,30 @@ body {
 }
 
 .tree-container {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  max-height: 600px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 24px;
+  max-height: 70vh;
   overflow-y: auto;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.tree-node {
-  margin-left: 20px;
-  margin-top: 8px;
+.tree-container::-webkit-scrollbar {
+  width: 10px;
 }
 
-.tree-node-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  border-left: 3px solid #667eea;
-  transition: all 0.2s;
+.tree-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
 }
 
-.tree-node-header:hover {
-  background: #f0f0f0;
-  transform: translateX(2px);
+.tree-container::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
 }
 
-.tree-node-key {
-  font-weight: 600;
-  color: #333;
-  min-width: 150px;
-}
-
-.tree-node-value {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.tree-node-value input {
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 200px;
-}
-
-.tree-node-value input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.tree-node-type {
-  font-size: 12px;
-  color: #888;
-  font-style: italic;
-}
-
-.value-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.value-badge.changed {
-  background: #fff3cd;
-  color: #856404;
-  animation: highlight 0.5s;
-}
-
-@keyframes highlight {
-  0% {
-    background: #ffc107;
-  }
-  100% {
-    background: #fff3cd;
-  }
-}
-
-.btn-write {
-  padding: 6px 12px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-write:hover {
-  background: #218838;
-  transform: scale(1.05);
-}
-
-.btn-write:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.toggle-icon {
-  cursor: pointer;
-  user-select: none;
-  font-weight: bold;
-  color: #667eea;
-  width: 20px;
-  text-align: center;
+.tree-container::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
 }
 
 .empty-state {
