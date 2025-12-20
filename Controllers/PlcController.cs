@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Conduit.EdgePlcDriver;
 using Conduit.EdgePlcDriver.Messages;
 using ConduitPlcDemo;
+using System.Text.Json;
 
 namespace ConduitPlcDemo.Controllers;
 
@@ -190,9 +191,24 @@ public class PlcController : ControllerBase
             // Construir el tagName completo: tagName.path
             var fullTagName = $"{tagName}.{request.Path}";
             
-            _logger.LogDebug("Writing to path: {FullTagName} with value: {Value}", fullTagName, request.Value);
+            // Extraer el valor real si viene como JsonElement
+            object? rawValue = request.Value;
+            if (request.Value is JsonElement jsonElement)
+            {
+                rawValue = jsonElement.ValueKind switch
+                {
+                    JsonValueKind.String => jsonElement.GetString(),
+                    JsonValueKind.Number => jsonElement.GetInt32(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.Null => null,
+                    _ => jsonElement.GetRawText()
+                };
+            }
+            
+            _logger.LogDebug("Writing to path: {FullTagName} with value: {Value} (raw: {RawValue})", fullTagName, request.Value, rawValue);
 
-           //await _plcConnection.WriteTagAsync(fullTagName, request.Value, cancellationToken);
+            await _plcConnection.WriteTagAsync(fullTagName, rawValue, cancellationToken);
             
             return Ok(new { 
                 message = $"Path {request.Path} written successfully", 

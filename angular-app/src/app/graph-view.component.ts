@@ -230,7 +230,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
       const options = {
         nodes: {
           font: {
-            size: 16,
+            size: 14,
             face: 'Arial',
             color: '#111827', // Black text
             bold: false
@@ -245,12 +245,12 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
           },
           margin: 15,
           widthConstraint: {
-            minimum: 150,
-            maximum: 400  // Increased to accommodate full paths
+            minimum: 180,
+            maximum: 350  // Narrower but still accommodates full paths
           },
           heightConstraint: {
-            minimum: 70,
-            maximum: 200  // Increased for multi-line labels
+            minimum: 50,
+            maximum: 120  // Reduced height for more compact vertical layout
           },
           shapeProperties: {
             borderRadius: 8
@@ -289,11 +289,11 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         layout: {
           hierarchical: {
             enabled: true,
-            direction: 'LR',  // Left to Right
+            direction: 'UD',  // Up to Down (Top to Bottom) - more narrow
             sortMethod: 'directed',
-            levelSeparation: 500,  // Increased spacing between levels for full paths
-            nodeSpacing: 300,      // Increased spacing between nodes
-            treeSpacing: 400,      // Increased spacing between trees
+            levelSeparation: 120,  // Reduced vertical spacing between levels
+            nodeSpacing: 200,      // Horizontal spacing between nodes
+            treeSpacing: 150,      // Reduced spacing between trees
             blockShifting: true,
             edgeMinimization: true,
             parentCentralization: true,
@@ -390,13 +390,13 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
       } else if (node.type === 'string') {
         color = '#9CA3AF'; // Light gray
         const val = this.formatValue(node.value);
-        label = `${fullPath}\n${val.length > 30 ? val.substring(0, 30) + '...' : val}`;
+        label = `${fullPath}: ${val.length > 25 ? val.substring(0, 25) + '...' : val}`;  // Single line for compactness
       } else if (node.type === 'number') {
         color = '#D1D5DB'; // Very light gray
-        label = `${fullPath}\n${node.value}`;
+        label = `${fullPath}: ${node.value}`;  // Single line
       } else if (node.type === 'boolean') {
         color = '#E5E7EB'; // Lightest gray
-        label = `${fullPath}\n${node.value}`;
+        label = `${fullPath}: ${node.value}`;  // Single line
       }
 
       // If editable, add indicator (inline for better readability)
@@ -418,7 +418,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
         shape: isRootNode ? 'box' : (node.children ? 'box' : (node.editable ? 'diamond' : 'ellipse')),
         font: {
           color: isRootNode ? '#FFFFFF' : '#111827', // White text on root, black on others
-          size: isRootNode ? 18 : (node.children ? 16 : 14),  // Increased font sizes
+          size: isRootNode ? 15 : (node.children ? 13 : 12),  // Slightly smaller for compact layout
           bold: isRootNode || node.editable
         },
         value: isRootNode ? 20 : (node.children ? (node.children.length * 10) : (node.editable ? 8 : 5)),
