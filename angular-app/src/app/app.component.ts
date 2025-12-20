@@ -58,6 +58,8 @@ import { GraphViewComponent } from './graph-view.component';
         <app-graph-view 
           [treeData]="treeData"
           (writeValue)="writeValue($event)"
+          (editingStart)="onEditingStart($event)"
+          (editingEnd)="onEditingEnd($event)"
         ></app-graph-view>
       </div>
     </div>
@@ -73,6 +75,7 @@ export class AppComponent implements OnInit, OnDestroy {
   isConnected: boolean = false;
   private updateSubscription?: Subscription;
   private previousData: any = null;
+  private editingPaths: Set<string> = new Set();  // Track which paths are being edited
 
   constructor(private http: HttpClient) {}
 
@@ -162,6 +165,15 @@ export class AppComponent implements OnInit, OnDestroy {
     nodes.forEach(node => {
       if (!node || !node.key) return;
       
+      // Skip updating if this node is currently being edited
+      if (this.editingPaths.has(node.key)) {
+        // Still update children if they exist
+        if (node.children && Array.isArray(node.children)) {
+          this.updateTreeValues(node.children, newData, oldData);
+        }
+        return;
+      }
+      
       const newValue = this.getValueByPath(newData, node.key);
       const oldValue = this.getValueByPath(oldData, node.key);
       
@@ -171,8 +183,8 @@ export class AppComponent implements OnInit, OnDestroy {
           node.previousValue = oldValue;
           node.value = newValue;
           
-          // Actualizar editValue si es editable
-          if (node.editable) {
+          // Only update editValue if not currently being edited
+          if (node.editable && !this.editingPaths.has(node.key)) {
             node.editValue = newValue;
           }
           
@@ -182,15 +194,15 @@ export class AppComponent implements OnInit, OnDestroy {
           }, 500);
         } else {
           node.value = newValue;
-          // Actualizar editValue si es editable
-          if (node.editable) {
+          // Only update editValue if not currently being edited
+          if (node.editable && !this.editingPaths.has(node.key)) {
             node.editValue = newValue;
           }
         }
       } catch (e) {
         // Si hay error en JSON.stringify (ej: objetos circulares), solo actualizar
         node.value = newValue;
-        if (node.editable) {
+        if (node.editable && !this.editingPaths.has(node.key)) {
           node.editValue = newValue;
         }
       }
@@ -217,7 +229,7 @@ export class AppComponent implements OnInit, OnDestroy {
             value: item,
             type: 'array',
             children: this.buildTree(item, newPath),
-            expanded: true,
+            expanded: false,  // Collapsed by default
             editable: false
           });
         } else {
@@ -241,7 +253,7 @@ export class AppComponent implements OnInit, OnDestroy {
             value: value,
             type: 'object',
             children: this.buildTree(value, newPath),
-            expanded: true,
+            expanded: false,  // Collapsed by default
             editable: false
           });
         } else if (Array.isArray(value)) {
@@ -250,7 +262,7 @@ export class AppComponent implements OnInit, OnDestroy {
             value: value,
             type: 'array',
             children: this.buildTree(value, newPath),
-            expanded: true,
+            expanded: false,  // Collapsed by default
             editable: false
           });
         } else {
@@ -304,6 +316,14 @@ export class AppComponent implements OnInit, OnDestroy {
     return current;
   }
 
+  onEditingStart(path: string) {
+    this.editingPaths.add(path);
+  }
+
+  onEditingEnd(path: string) {
+    this.editingPaths.delete(path);
+  }
+
   writeValue(data: { path: string; value: any }) {
     // Enviar solo el path y el valor cuando es un primitivo
     const request = {
@@ -314,8 +334,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.http.post(`/api/plc/tags/${encodeURIComponent(this.tagName)}/write-path`, request).subscribe({
       next: () => {
         console.log('Value written successfully');
-        // Refrescar la estructura general después de escribir
-        this.loadStructure();
+        // Only refresh values, don't rebuild the entire tree
+        this.updateValues();
       },
       error: (err) => {
         this.error = err.error?.error || 'Error writing value';

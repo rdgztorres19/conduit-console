@@ -44,7 +44,8 @@ export interface TreeNode {
               <input
                 type="text"
                 [(ngModel)]="node.editValue"
-                (blur)="onValueChange()"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()"
                 (keyup.enter)="onValueChange()"
                 class="value-input"
                 placeholder="Enter value"
@@ -299,6 +300,8 @@ export interface TreeNode {
 export class TreeNodeComponent {
   @Input() node!: TreeNode;
   @Output() writeValue = new EventEmitter<{ path: string; value: any }>();
+  @Output() editingStart = new EventEmitter<string>();
+  @Output() editingEnd = new EventEmitter<string>();
   writing: boolean = false;
 
   toggle() {
@@ -357,6 +360,21 @@ export class TreeNodeComponent {
     setTimeout(() => {
       this.writing = false;
     }, 1000);
+  }
+
+  onInputFocus() {
+    if (this.node?.key) {
+      this.editingStart.emit(this.node.key);
+    }
+  }
+
+  onInputBlur() {
+    if (this.node?.key) {
+      // Small delay to allow writeValue to complete first
+      setTimeout(() => {
+        this.editingEnd.emit(this.node.key);
+      }, 100);
+    }
   }
 
   onWriteValue(data: { path: string; value: any }) {

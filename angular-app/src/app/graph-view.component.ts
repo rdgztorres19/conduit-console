@@ -36,6 +36,8 @@ declare var vis: {
           *ngFor="let node of treeData"
           [node]="node"
           (writeValue)="onWriteValue($event)"
+          (editingStart)="onEditingStart($event)"
+          (editingEnd)="onEditingEnd($event)"
         ></app-tree-node>
       </div>
     </div>
@@ -91,6 +93,8 @@ declare var vis: {
 export class GraphViewComponent implements OnChanges, AfterViewInit {
   @Input() treeData: TreeNode[] = [];
   @Output() writeValue = new EventEmitter<{ path: string; value: any }>();
+  @Output() editingStart = new EventEmitter<string>();
+  @Output() editingEnd = new EventEmitter<string>();
   @ViewChild('networkContainer', { static: false }) networkContainer!: ElementRef;
   
   network: any = null;
@@ -186,6 +190,14 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
 
   onWriteValue(data: { path: string; value: any }) {
     this.writeValue.emit(data);
+  }
+
+  onEditingStart(path: string) {
+    this.editingStart.emit(path);
+  }
+
+  onEditingEnd(path: string) {
+    this.editingEnd.emit(path);
   }
 
   updateGraph() {
