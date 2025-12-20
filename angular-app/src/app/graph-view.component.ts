@@ -245,12 +245,12 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
           },
           margin: 15,
           widthConstraint: {
-            minimum: 120,
-            maximum: 300
+            minimum: 150,
+            maximum: 400  // Increased to accommodate full paths
           },
           heightConstraint: {
-            minimum: 60,
-            maximum: 150
+            minimum: 70,
+            maximum: 200  // Increased for multi-line labels
           },
           shapeProperties: {
             borderRadius: 8
@@ -291,9 +291,9 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
             enabled: true,
             direction: 'LR',  // Left to Right
             sortMethod: 'directed',
-            levelSeparation: 400,  // Increased spacing between levels
-            nodeSpacing: 250,      // Increased spacing between nodes
-            treeSpacing: 300,      // Increased spacing between trees
+            levelSeparation: 500,  // Increased spacing between levels for full paths
+            nodeSpacing: 300,      // Increased spacing between nodes
+            treeSpacing: 400,      // Increased spacing between trees
             blockShifting: true,
             edgeMinimization: true,
             parentCentralization: true,
@@ -372,31 +372,31 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
     const processNode = (node: TreeNode, parent: string | null, currentLevel: number, isRootNode: boolean = false): string => {
       const id = `node_${nodeIdCounter.value++}`;
       
-      // Determine color by type - professional black and gray palette
-      const displayKey = this.getDisplayKey(node.key);
+      // Use full path for all nodes (not just display key)
+      const fullPath = node.key || '';
       let color = '#E5E7EB'; // Light gray default
-      let label = displayKey;
+      let label = fullPath;
       
-      // Mark root node - simplified labels for better readability
+      // Mark root node - show full path
       if (isRootNode) {
-        label = displayKey;  // Remove "ROOT:" prefix for cleaner look
+        label = fullPath;
         color = '#1F2937'; // Dark gray/black
       } else if (node.type === 'object') {
         color = '#4B5563'; // Medium gray
-        label = `${displayKey}`;  // Simplified - removed {Object}
+        label = fullPath;
       } else if (node.type === 'array') {
         color = '#6B7280'; // Lighter gray
-        label = `${displayKey}[${node.children?.length || 0}]`;  // Simplified format
+        label = `${fullPath}[${node.children?.length || 0}]`;
       } else if (node.type === 'string') {
         color = '#9CA3AF'; // Light gray
         const val = this.formatValue(node.value);
-        label = `${displayKey}: ${val.length > 20 ? val.substring(0, 20) + '...' : val}`;  // Single line
+        label = `${fullPath}\n${val.length > 30 ? val.substring(0, 30) + '...' : val}`;
       } else if (node.type === 'number') {
         color = '#D1D5DB'; // Very light gray
-        label = `${displayKey}: ${node.value}`;  // Single line
+        label = `${fullPath}\n${node.value}`;
       } else if (node.type === 'boolean') {
         color = '#E5E7EB'; // Lightest gray
-        label = `${displayKey}: ${node.value}`;  // Single line
+        label = `${fullPath}\n${node.value}`;
       }
 
       // If editable, add indicator (inline for better readability)
