@@ -43,6 +43,12 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
     {
         _requestCount++;
 
+        _logger.LogInformation(
+            "🔔 MqttTagReadRequestHandler.HandleAsync called | Request #{Count} | Topic: {Topic} | Request: {Request}",
+            _requestCount,
+            context.Topic,
+            System.Text.Json.JsonSerializer.Serialize(request));
+
         if (string.IsNullOrWhiteSpace(request.TagName))
         {
             _logger.LogWarning("⚠️ Received empty tag name in request #{Count}", _requestCount);

@@ -35,6 +35,11 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
     {
         _responseCount++;
 
+        _logger.LogDebug(
+            "🔔 MqttTagReadResponseHandler.HandleAsync called | Response #{Count} | Topic: {Topic}",
+            _responseCount,
+            context.Topic);
+
         if (response.HasError)
         {
             Console.WriteLine("═══════════════════════════════════════════════════════════");
