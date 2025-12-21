@@ -34,6 +34,9 @@ class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         
+        // Deshabilitar sesiones y cookies para evitar problemas de 403
+        // NO agregar AddSession, AddAuthentication, AddAuthorization
+        
         // Configurar CORS para permitir todas las solicitudes (desarrollo)
         builder.Services.AddCors(options =>
         {
@@ -209,6 +212,9 @@ class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        
+        // Asegurar que NO haya middleware de autorización o autenticación
+        // NO llamar a app.UseAuthentication() o app.UseAuthorization()
 
         // Servir archivos estáticos de Angular PRIMERO
         // Los archivos están en wwwroot/browser/ porque Angular 17 genera ahí
@@ -228,10 +234,24 @@ class Program
         // Archivos estáticos - servir desde la raíz
         var fileProvider = new PhysicalFileProvider(browserPath);
         
-        // Habilitar CORS
+        // Middleware para eliminar cookies de sesión problemáticas (antes de CORS)
+        app.Use(async (context, next) =>
+        {
+            // Eliminar cookies de sesión que puedan causar 403
+            if (context.Request.Cookies.Count > 0)
+            {
+                foreach (var cookie in context.Request.Cookies.Keys)
+                {
+                    context.Response.Cookies.Delete(cookie);
+                }
+            }
+            await next();
+        });
+        
+        // Habilitar CORS PRIMERO (antes de cualquier otro middleware)
         app.UseCors();
         
-        // Routing PRIMERO
+        // Routing
         app.UseRouting();
         
         // Habilitar WebSockets (requerido para que el middleware funcione)
@@ -246,9 +266,7 @@ class Program
         // Mapear endpoints de API (sin autorización - acceso público)
         app.MapControllers();
         
-        // Middleware personalizado para SPA fallback (DEBE ir ANTES de UseStaticFiles)
-        // Si el archivo no existe y no es una ruta de API/WebSocket, cambia el path a /index.html
-        // para que UseStaticFiles lo sirva
+        // Middleware de fallback ANTES de UseStaticFiles (para cambiar path a /index.html si es necesario)
         app.Use(async (context, next) =>
         {
             // Si es una ruta de API, WebSocket o Swagger, NO hacer nada
@@ -259,12 +277,12 @@ class Program
                 await next();
                 return;
             }
-
-            // Si el archivo existe, servirlo normalmente
+            
+            // Verificar si el archivo existe
             var fileInfo = fileProvider.GetFileInfo(context.Request.Path.Value ?? "/");
             if (!fileInfo.Exists || fileInfo.IsDirectory)
             {
-                // Si no existe y no es una ruta de API/WebSocket, servir index.html (SPA fallback)
+                // Si no existe, servir index.html (SPA fallback)
                 var indexFile = fileProvider.GetFileInfo("/index.html");
                 if (indexFile.Exists)
                 {
