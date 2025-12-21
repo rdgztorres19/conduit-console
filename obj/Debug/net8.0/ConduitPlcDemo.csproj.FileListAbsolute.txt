@@ -45,3 +45,9 @@
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/obj/Debug/net8.0/staticwebassets.build.json.cache
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/obj/Debug/net8.0/staticwebassets.development.json
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/obj/Debug/net8.0/staticwebassets.build.endpoints.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/angular-app/angular.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/angular-app/package-lock.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/angular-app/package.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/angular-app/tsconfig.app.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/angular-app/tsconfig.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/ConduitPlcDemo.staticwebassets.runtime.json
