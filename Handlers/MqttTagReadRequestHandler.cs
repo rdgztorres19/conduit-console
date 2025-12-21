@@ -106,7 +106,7 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
             }
             else
             {
-                var result = await _plcConnection.ReadTagAsync<object>(request.TagName, cancellationToken);
+                var result = await _plcConnection.ReadTagRawAsync(request.TagName, cancellationToken);
                 
                 response = new TagReadResponse
                 {
