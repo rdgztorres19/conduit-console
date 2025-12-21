@@ -1,3 +1,4 @@
+using System.Reflection;
 using Conduit.Core.Abstractions;
 using Conduit.Core.Attributes;
 using Conduit.Core.Enums;
@@ -6,6 +7,7 @@ using Conduit.Mqtt;
 using Conduit.Mqtt.Attributes;
 using ConduitPlcDemo.Messages;
 using ConduitPlcDemo;
+using ConduitPlcDemo.Types;
 using Microsoft.Extensions.Logging;
 
 namespace ConduitPlcDemo.Handlers;
@@ -87,25 +89,62 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                 return;
             }
 
-            // Leer el tag del PLC dinámicamente
+            // Leer el tag del PLC dinámicamente usando el factory
             TagReadResponse response;
 
-            if (request.TagName.Equals("ngpSampleCurrent", StringComparison.OrdinalIgnoreCase))
+            // Buscar el tipo UDT correspondiente al tagName en el factory
+            var udtType = UdtTypeFactory.GetType(request.TagName);
+            
+            if (udtType != null)
             {
-                var result = await _plcConnection.ReadTagAsync<STRUCT_samples>(request.TagName, cancellationToken);
+                // Usar reflexión para llamar ReadTagAsync<T> con el tipo obtenido del factory
+                var method = typeof(IEdgePlcDriver).GetMethod(nameof(IEdgePlcDriver.ReadTagAsync));
+                if (method == null)
+                {
+                    throw new InvalidOperationException("ReadTagAsync method not found on IEdgePlcDriver");
+                }
+
+                var genericMethod = method.MakeGenericMethod(udtType);
+                var task = (Task?)genericMethod.Invoke(_plcConnection, new object[] { request.TagName, cancellationToken });
                 
+                if (task == null)
+                {
+                    throw new InvalidOperationException("ReadTagAsync returned null");
+                }
+
+                await task.ConfigureAwait(false);
+
+                // Obtener el resultado de la tarea
+                var resultProperty = task.GetType().GetProperty("Result");
+                var result = resultProperty?.GetValue(task);
+                
+                if (result == null)
+                {
+                    throw new InvalidOperationException("ReadTagAsync result is null");
+                }
+
+                // Extraer propiedades del resultado usando reflexión
+                var tagNameProp = result.GetType().GetProperty("TagName");
+                var valueProp = result.GetType().GetProperty("Value");
+                var qualityProp = result.GetType().GetProperty("Quality");
+                var timestampProp = result.GetType().GetProperty("Timestamp");
+
                 response = new TagReadResponse
                 {
-                    TagName = result.TagName,
-                    Value = result.Value,
-                    Quality = result.Quality.ToString(),
-                    Timestamp = result.Timestamp,
+                    TagName = tagNameProp?.GetValue(result) as string ?? request.TagName,
+                    Value = valueProp?.GetValue(result),
+                    Quality = qualityProp?.GetValue(result)?.ToString() ?? "Bad",
+                    Timestamp = timestampProp?.GetValue(result) as DateTimeOffset? ?? DateTimeOffset.UtcNow,
                     CorrelationId = request.CorrelationId,
-                    HasError = result.Quality != Conduit.EdgePlcDriver.Messages.TagQuality.Good
+                    HasError = qualityProp?.GetValue(result)?.ToString() != "Good"
                 };
+
+                _logger.LogDebug("✅ Read tag '{TagName}' using UDT type '{UdtType}' from factory", 
+                    request.TagName, udtType.Name);
             }
             else
             {
+                // No se encontró en el factory, usar object como fallback
                 var result = await _plcConnection.ReadTagAsync<object>(request.TagName, cancellationToken);
                 
                 response = new TagReadResponse
@@ -117,6 +156,8 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                     CorrelationId = request.CorrelationId,
                     HasError = result.Quality != Conduit.EdgePlcDriver.Messages.TagQuality.Good
                 };
+
+                _logger.LogDebug("⚠️ Tag '{TagName}' not found in factory, using object type", request.TagName);
             }
 
             await _mqtt.Publisher.PublishAsync("plc/read-response", response, cancellationToken: cancellationToken);

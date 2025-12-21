@@ -1,68 +1,68 @@
-using System.Reflection;
 using AutomatedSolutions.ASCommStd;
 using ABLogix = AutomatedSolutions.ASCommStd.AB.Logix;
 using Microsoft.Extensions.Logging;
-using Conduit.EdgePlcDriver;
 
 namespace ConduitPlcDemo.Services;
 
 /// <summary>
-/// Servicio que lee directamente el tag ngpSampleCurrent.pallets usando ASComm reutilizando la conexión existente de EdgePlcDriver.
+/// Servicio que lee directamente el tag ngpSampleCurrent.pallets usando ASComm sin pasar por EdgePlcDriver.
 /// Se ejecuta al iniciar la aplicación.
 /// </summary>
 public class PalletsDirectReaderService
 {
     private readonly ILogger<PalletsDirectReaderService> _logger;
-    private readonly IEdgePlcDriver _plcDriver;
+    private readonly string _plcIp;
+    private readonly int _plcSlot;
     
-    private ABLogix.Group? _tempGroup;
+    private ABLogix.Net.Channel? _channel;
+    private ABLogix.Device? _device;
     private ABLogix.Item? _palletsItem;
 
-    public PalletsDirectReaderService(ILogger<PalletsDirectReaderService> logger, IEdgePlcDriver plcDriver)
+    public PalletsDirectReaderService(ILogger<PalletsDirectReaderService> logger, string plcIp, int plcSlot)
     {
         _logger = logger;
-        _plcDriver = plcDriver;
+        _plcIp = plcIp;
+        _plcSlot = plcSlot;
     }
 
     /// <summary>
-    /// Lee el tag ngpSampleCurrent.pallets usando ASComm reutilizando la conexión existente de EdgePlcDriver
+    /// Inicializa la conexión ASComm y lee el tag ngpSampleCurrent.pallets
     /// </summary>
     public async Task ReadPalletsTagAsync()
     {
-        // Esperar a que EdgePlcDriver esté conectado
-        if (!_plcDriver.IsConnected)
-        {
-            _logger.LogWarning("⚠️ PLC no está conectado. Esperando conexión...");
-            // Esperar un poco por si está conectando
-            await Task.Delay(2000);
-            if (!_plcDriver.IsConnected)
-            {
-                _logger.LogError("❌ PLC no está conectado. No se puede leer el tag.");
-                return;
-            }
-        }
-
-        // Obtener el Device existente usando reflexión (ya que es privado)
-        var device = GetDeviceFromEdgePlcDriver();
-        if (device == null)
-        {
-            _logger.LogError("❌ No se pudo obtener el Device de EdgePlcDriver");
-            return;
-        }
-
         try
         {
-            _logger.LogInformation("🔧 Leyendo ngpSampleCurrent.pallets usando ASComm directo (reutilizando conexión existente)...");
+            _logger.LogInformation("🔧 Inicializando conexión ASComm directa para leer ngpSampleCurrent.pallets...");
 
-            // Crear un grupo temporal para esta lectura
-            _tempGroup = new ABLogix.Group(false, 1000); // active=false, updateRate=1000ms
-            device.Groups.Add(_tempGroup);
+            // 1. Crear Channel (conexión Ethernet)
+            _channel = new ABLogix.Net.Channel();
+            _channel.Error += (sender, e) =>
+            {
+                _logger.LogError("❌ Channel Error: {Message}", e.Message);
+            };
 
-            // Crear Item para el tag ngpSampleCurrent.pallets
+            // 2. Crear Device (IP,Slot,Port) - formato: "IP,Backplane,Slot"
+            var routePath = $"{_plcIp},{_plcSlot},0";
+            _device = new ABLogix.Device(routePath, ABLogix.Model.ControlLogix);
+            _device.TimeoutConnect = 5000; // 5 segundos
+            _device.TimeoutTransaction = 3000; // 3 segundos
+            _device.Error += (sender, e) =>
+            {
+                _logger.LogError("❌ Device Error: {Message}", e.Message);
+            };
+
+            // 3. Crear Group (para contener items)
+            var group = new ABLogix.Group(false, 1000); // active=false, updateRate=1000ms
+
+            // 4. Crear Item para el tag ngpSampleCurrent.pallets
             _palletsItem = new ABLogix.Item("palletsItem", "ngpSampleCurrent.pallets");
-            _tempGroup.Items.Add(_palletsItem);
 
-            _logger.LogInformation("✅ Item ASComm creado. Leyendo tag...");
+            // 5. Conectar la jerarquía
+            _channel.Devices.Add(_device);
+            _device.Groups.Add(group);
+            group.Items.Add(_palletsItem);
+
+            _logger.LogInformation("✅ Jerarquía ASComm creada. Conectando al PLC en {RoutePath}...", routePath);
 
             // 6. Leer el tag de forma asíncrona
             await _palletsItem.ReadAsync();
@@ -177,49 +177,24 @@ public class PalletsDirectReaderService
         }
     }
 
-    /// <summary>
-    /// Obtiene el Device privado de EdgePlcDriver usando reflexión
-    /// </summary>
-    private ABLogix.Device? GetDeviceFromEdgePlcDriver()
-    {
-        try
-        {
-            var edgePlcDriverType = _plcDriver.GetType();
-            var deviceField = edgePlcDriverType.GetField("_device", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            
-            if (deviceField != null)
-            {
-                return deviceField.GetValue(_plcDriver) as ABLogix.Device;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error al obtener Device de EdgePlcDriver usando reflexión");
-        }
-        
-        return null;
-    }
-
     private void Cleanup()
     {
         try
         {
-            if (_palletsItem != null && _tempGroup != null)
+            if (_palletsItem != null && _device != null && _device.Groups.Count > 0)
             {
-                _tempGroup.Items.Remove(_palletsItem);
+                var group = _device.Groups[0];
+                group.Items.Remove(_palletsItem);
                 _palletsItem = null;
             }
 
-            if (_tempGroup != null)
+            if (_device != null && _channel != null)
             {
-                var device = GetDeviceFromEdgePlcDriver();
-                if (device != null)
-                {
-                    device.Groups.Remove(_tempGroup);
-                }
-                _tempGroup = null;
+                _channel.Devices.Remove(_device);
+                _device = null;
             }
+
+            _channel = null;
         }
         catch (Exception ex)
         {
