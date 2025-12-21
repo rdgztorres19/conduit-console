@@ -110,7 +110,7 @@ class Program
             // DEMO: Lectura directa con ASComm de ngpSampleCurrent.pallets
             // ════════════════════════════════════════════════════════════════
             var palletsLogger = loggerFactory.CreateLogger<PalletsDirectReaderService>();
-            var palletsReader = new PalletsDirectReaderService(palletsLogger, plcIp, slot);
+            var palletsReader = new PalletsDirectReaderService(palletsLogger, plcConnection);
             await palletsReader.ReadPalletsTagAsync();
             
             Console.WriteLine("\n");
