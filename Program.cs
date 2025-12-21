@@ -52,13 +52,13 @@ class Program
         // ════════════════════════════════════════════════════════════════
         var conduit = ConduitBuilder.Create()
             .WithActivator(diContainer.GetActivator())
-            .AddEdgePlcDriver(plc => plc
-                .WithConnectionName("plc1")
-                .WithPlc(plcIp, cpuSlot: slot)
-                .WithDefaultPollingInterval(100)
-                .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
-                .WithLoggerFactory(loggerFactory)
-                .WithHandlersFromEntryAssembly())
+            // .AddEdgePlcDriver(plc => plc
+            //     .WithConnectionName("plc1")
+            //     .WithPlc(plcIp, cpuSlot: slot)
+            //     .WithDefaultPollingInterval(100)
+            //     .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
+            //     .WithLoggerFactory(loggerFactory)
+            //     .WithHandlersFromEntryAssembly())
             .AddMqttConnection(mqtt => mqtt
                 .WithConnectionName("mqtt")
                 .WithBroker("66.179.188.92", 1883)
@@ -70,8 +70,8 @@ class Program
                 .WithHandlersFromEntryAssembly())
             .Build();
 
-        var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
-        builder.Services.AddSingleton(plcConnection);
+        // var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
+        // builder.Services.AddSingleton(plcConnection);
 
         var mqttConnection = conduit.GetConnection<IMqttConnection>();
         builder.Services.AddSingleton(mqttConnection);

@@ -24,6 +24,7 @@ public static class UdtTypeFactory
         { "inDataFtoptix", typeof(UDT_NGP_CAVITY) }, // xUDT_FTOPTIX_CTL - mapeo temporal
         
         // También mapear los nombres de tipos UDT directamente (para compatibilidad)
+        // Nota: Como el diccionario es case-insensitive, solo necesitamos una versión de cada clave
         { "XUDT_NGP_CAVITY", typeof(UDT_NGP_CAVITY) },
         { "XUDT_NGP_PALLET", typeof(UDT_NGP_PALLET) },
         { "XUDT_NGP_PALLET_BASE", typeof(UDT_NGP_PALLET_BASE) },
@@ -36,20 +37,6 @@ public static class UdtTypeFactory
         { "XUDT_NGP_DEVICE_HEARTBEAT", typeof(UDT_NGP_DEVICE_HEARTBEAT) },
         { "XUDT_NGP_INSTRUMENT", typeof(UDT_NGP_INSTRUMENT) },
         { "XUDT_FTOPTIX_CTL", typeof(UDT_NGP_CAVITY) },
-        
-        // También soportar nombres con minúsculas (case-insensitive)
-        { "xUDT_NGP_CAVITY", typeof(UDT_NGP_CAVITY) },
-        { "xUDT_NGP_PALLET", typeof(UDT_NGP_PALLET) },
-        { "xUDT_NGP_PALLET_BASE", typeof(UDT_NGP_PALLET_BASE) },
-        { "xUDT_NGP_SAMPLE", typeof(UDT_NGP_SAMPLE) },
-        { "xUDT_NGP_SAMPLE_BASE", typeof(UDT_NGP_SAMPLE_BASE) },
-        { "xUDT_NGP_LOT", typeof(UDT_NGP_LOT) },
-        { "xUDT_NGP_MOLD_DESIGN", typeof(UDT_NGP_MOLD_DESIGN) },
-        { "xUDT_NGP_PLASTIC_DESIGN", typeof(UDT_NGP_PLASTIC_DESIGN) },
-        { "xUDT_NGP_SYSTEM", typeof(UDT_NGP_SYSTEM) },
-        { "xUDT_NGP_DEVICE_HEARTBEAT", typeof(UDT_NGP_DEVICE_HEARTBEAT) },
-        { "xUDT_NGP_INSTRUMENT", typeof(UDT_NGP_INSTRUMENT) },
-        { "xUDT_FTOPTIX_CTL", typeof(UDT_NGP_CAVITY) },
         
         // También soportar nombres sin prefijo x para compatibilidad
         { "UDT_NGP_CAVITY", typeof(UDT_NGP_CAVITY) },
