@@ -4,15 +4,17 @@ using Conduit.Core.Enums;
 using Conduit.Mqtt;
 using Conduit.Mqtt.Attributes;
 using ConduitPlcDemo.Messages;
+using ConduitPlcDemo.Services;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace ConduitPlcDemo.Handlers;
 
 /// <summary>
 /// Handler que se suscribe a MQTT para recibir respuestas de lectura de tags.
-/// Imprime la información del tag leído por consola.
+/// Envía las actualizaciones al UI mediante WebSocket y también imprime por consola.
 /// 
 /// Topic de suscripción: "plc/read-response"
 /// </summary>
@@ -20,12 +22,17 @@ namespace ConduitPlcDemo.Handlers;
 public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadResponse>
 {
     private readonly ILogger<MqttTagReadResponseHandler> _logger;
+    private readonly Services.WebSocketManager _webSocketManager;
     private int _responseCount = 0;
 
-    public MqttTagReadResponseHandler(ILogger<MqttTagReadResponseHandler> logger)
+    public MqttTagReadResponseHandler(
+        ILogger<MqttTagReadResponseHandler> logger,
+        Services.WebSocketManager webSocketManager)
     {
         _logger = logger;
-        _logger.LogInformation("✅ MqttTagReadResponseHandler instantiated - ready to receive tag read responses");
+        _webSocketManager = webSocketManager;
+        // Console.WriteLine($"🔧 MqttTagReadResponseHandler constructor called. WebSocketManager instance ID: {_webSocketManager.GetHashCode()}");
+        // _logger.LogInformation("✅ MqttTagReadResponseHandler instantiated - ready to receive tag read responses");
     }
 
     public async Task HandleAsync(
@@ -35,10 +42,44 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
     {
         _responseCount++;
 
-        _logger.LogDebug(
-            "🔔 MqttTagReadResponseHandler.HandleAsync called | Response #{Count} | Topic: {Topic}",
-            _responseCount,
-            context.Topic);
+        // Console.WriteLine("═══════════════════════════════════════════════════════════");
+
+        // _logger.LogDebug(
+        //     "🔔 MqttTagReadResponseHandler.HandleAsync called | Response #{Count} | Topic: {Topic}",
+        //     _responseCount,
+        //     context.Topic);
+
+        // Enviar actualización por WebSocket a los clientes suscritos al tag
+        try
+        {
+            // Console.WriteLine($"📤 Sending TagReadResponse via WebSocket for tag '{response.TagName}'");
+            // _logger.LogInformation("📤 Sending TagReadResponse via WebSocket for tag '{TagName}'", response.TagName);
+            
+            // Crear mensaje con tipo para que el cliente sepa qué es
+            var message = new
+            {
+                type = "TagReadResponse",
+                tagName = response.TagName,
+                value = response.Value,
+                quality = response.Quality,
+                timestamp = response.Timestamp,
+                correlationId = response.CorrelationId,
+                hasError = response.HasError,
+                errorMessage = response.ErrorMessage
+            };
+            
+            // Enviar a todos los clientes suscritos al tag
+            await _webSocketManager.SendToTagAsync(response.TagName, message, cancellationToken);
+            
+            // Console.WriteLine($"✅ TagReadResponse sent successfully via WebSocket for tag '{response.TagName}'");
+            // _logger.LogInformation("✅ TagReadResponse sent successfully via WebSocket for tag '{TagName}'", response.TagName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error sending to WebSocket: {ex.Message}");
+            Console.WriteLine($"   StackTrace: {ex.StackTrace}");
+            _logger.LogError(ex, "❌ Error sending read response to WebSocket for tag {TagName}", response.TagName);
+        }
 
         if (response.HasError)
         {
@@ -64,23 +105,23 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
             // Formatear el valor para mostrar en consola
             string valueDisplay = FormatValue(response.Value);
 
-            Console.WriteLine("═══════════════════════════════════════════════════════════");
-            Console.WriteLine($"✅ [#{_responseCount}] TAG READ SUCCESS");
-            Console.WriteLine($"   Tag: {response.TagName}");
-            Console.WriteLine($"   Quality: {response.Quality}");
-            Console.WriteLine($"   Timestamp: {response.Timestamp:yyyy-MM-dd HH:mm:ss.fff}");
-            Console.WriteLine($"   CorrelationId: {response.CorrelationId ?? "N/A"}");
-            Console.WriteLine($"   Topic: {context.Topic}");
-            Console.WriteLine($"   Value:");
-            Console.WriteLine($"   {valueDisplay}");
-            Console.WriteLine("═══════════════════════════════════════════════════════════");
+            // Console.WriteLine("═══════════════════════════════════════════════════════════");
+            // Console.WriteLine($"✅ [#{_responseCount}] TAG READ SUCCESS");
+            // Console.WriteLine($"   Tag: {response.TagName}");
+            // Console.WriteLine($"   Quality: {response.Quality}");
+            // Console.WriteLine($"   Timestamp: {response.Timestamp:yyyy-MM-dd HH:mm:ss.fff}");
+            // Console.WriteLine($"   CorrelationId: {response.CorrelationId ?? "N/A"}");
+            // Console.WriteLine($"   Topic: {context.Topic}");
+            // Console.WriteLine($"   Value:");
+            // Console.WriteLine($"   {valueDisplay}");
+            // Console.WriteLine("═══════════════════════════════════════════════════════════");
 
-            _logger.LogInformation(
-                "✅ [#{Count}] Tag read success | Tag: {TagName} | Quality: {Quality} | CorrelationId: {CorrelationId}",
-                _responseCount,
-                response.TagName,
-                response.Quality,
-                response.CorrelationId ?? "N/A");
+            // _logger.LogInformation(
+            //     "✅ [#{Count}] Tag read success | Tag: {TagName} | Quality: {Quality} | CorrelationId: {CorrelationId}",
+            //     _responseCount,
+            //     response.TagName,
+            //     response.Quality,
+            //     response.CorrelationId ?? "N/A");
         }
     }
 

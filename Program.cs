@@ -8,7 +8,7 @@ using Conduit.Mqtt;
 using ConduitPlcDemo.Services;
 using Conduit.Core.Events;
 using ConduitPlcDemo.Handlers.Events;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Routing;
 
 namespace ConduitPlcDemo;
 
@@ -33,25 +33,70 @@ class Program
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        
+        // Configurar CORS para permitir todas las solicitudes (desarrollo)
+        builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
+        
+        // NO registrar WebSocketManager aquí todavía - lo haremos después con una instancia específica
+
+        // ════════════════════════════════════════════════════════════════
+        // REGISTRAR SERVICIOS DE LA APLICACIÓN EN ASP.NET CORE
+        // ════════════════════════════════════════════════════════════════
+        // Registrar los servicios que normalmente se registran en DIContainerBuilder
+        // para que estén disponibles en el mismo ServiceCollection que tiene SignalR, Controllers, etc.
+        builder.Services.AddSingleton<IDataProcessingService, DataProcessingService>();
 
         // ════════════════════════════════════════════════════════════════
         // DEPENDENCY INJECTION
         // ════════════════════════════════════════════════════════════════
-        var diContainer = DIContainerBuilder.Create()
-            .UseSimpleInjector()      // ← Cambiar a .UseAutofac() para usar Autofac
+        // Crear DIContainerBuilder usando el ServiceCollection de ASP.NET Core
+        // Esto permite que los handlers puedan resolver servicios como IHubContext, Controllers, etc.
+        var diContainer = DIContainerBuilder.Create(builder.Services)
+            .UseNativeDI()      // ← Cambiar a .UseAutofac() para usar Autofac
             .Build();
 
         var loggerFactory = diContainer.GetLoggerFactory();
-        var serviceProvider = diContainer.GetServiceProvider();
         
-        // Agregar el serviceProvider personalizado a los servicios de Web API
-        builder.Services.AddSingleton(serviceProvider);
+        // IMPORTANTE: Crear una instancia única del WebSocketManager y registrarla explícitamente
+        // para que tanto ASP.NET Core como Conduit usen la MISMA instancia
+        var webSocketManagerInstance = new Services.WebSocketManager(
+            loggerFactory.CreateLogger<Services.WebSocketManager>());
+        Console.WriteLine($"🔧 WebSocketManager instance created: {webSocketManagerInstance.GetHashCode()}");
+        
+        // Registrar como instancia específica para garantizar que sea la misma en todos lados
+        builder.Services.AddSingleton(webSocketManagerInstance);
+        
+        // CRÍTICO: Reconstruir el DIContainerBuilder DESPUÉS de registrar el WebSocketManager
+        // para que el ServiceProvider de Conduit tenga acceso a la misma instancia
+        diContainer = DIContainerBuilder.Create(builder.Services)
+            .UseNativeDI()
+            .Build();
 
         // ════════════════════════════════════════════════════════════════
         // CONFIGURAR CONDUIT CON PLC
         // ════════════════════════════════════════════════════════════════
+        // Verificar que el activator use el mismo ServiceProvider
+        var activator = diContainer.GetActivator();
+        var testInstance = activator(typeof(Services.WebSocketManager));
+        Console.WriteLine($"🔧 Testing activator: WebSocketManager instance from activator: {testInstance.GetHashCode()}");
+        Console.WriteLine($"🔧 Expected instance: {webSocketManagerInstance.GetHashCode()}");
+        Console.WriteLine($"🔧 Same instance? {testInstance == webSocketManagerInstance}");
+        
+        if (testInstance != webSocketManagerInstance)
+        {
+            Console.WriteLine($"❌ ERROR: WebSocketManager instances are DIFFERENT! This will cause sockets to be lost.");
+        }
+        
         var conduit = ConduitBuilder.Create()
-            .WithActivator(diContainer.GetActivator())
+            .WithActivator(activator)
             // .AddEdgePlcDriver(plc => plc
             //     .WithConnectionName("plc1")
             //     .WithPlc(plcIp, cpuSlot: slot)
@@ -72,6 +117,13 @@ class Program
 
         // var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
         // builder.Services.AddSingleton(plcConnection);
+        
+        // PLC deshabilitado en esta PC - sin licencia ASComm
+        // Registrar NullEdgePlcDriver para que los controllers no fallen
+        // Los handlers MQTT verificarán si el PLC está disponible antes de usarlo
+        // En la otra PC con licencia ASComm, descomentar las líneas de arriba y comentar esta
+        var nullPlcConnection = new Services.NullEdgePlcDriver();
+        builder.Services.AddSingleton<IEdgePlcDriver>(nullPlcConnection);
 
         var mqttConnection = conduit.GetConnection<IMqttConnection>();
         builder.Services.AddSingleton(mqttConnection);
@@ -158,30 +210,84 @@ class Program
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
-        app.UseAuthorization();
-        app.MapControllers();
-        
-        // Servir archivos estáticos de Angular (después de los controladores)
+        // Servir archivos estáticos de Angular PRIMERO
         // Los archivos están en wwwroot/browser/ porque Angular 17 genera ahí
         var browserPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "browser");
         
-        app.UseDefaultFiles(new DefaultFilesOptions
+        // Verificar que el directorio existe
+        if (!Directory.Exists(browserPath))
         {
-            FileProvider = new PhysicalFileProvider(browserPath),
-            RequestPath = ""
+            Console.WriteLine($"⚠️ Warning: Angular build directory not found at: {browserPath}");
+            Console.WriteLine("   Make sure to run 'npm run build' in the angular-app directory");
+        }
+        else
+        {
+            Console.WriteLine($"✅ Serving Angular app from: {browserPath}");
+        }
+        
+        // Archivos estáticos - servir desde la raíz
+        var fileProvider = new PhysicalFileProvider(browserPath);
+        
+        // Habilitar CORS
+        app.UseCors();
+        
+        // Routing PRIMERO
+        app.UseRouting();
+        
+        // Habilitar WebSockets (requerido para que el middleware funcione)
+        app.UseWebSockets();
+        
+        // Mapear WebSocket endpoint PRIMERO (antes de controllers)
+        app.Map("/ws/plctag", builder =>
+        {
+            builder.UseMiddleware<Middleware.WebSocketMiddleware>();
         });
         
+        // Mapear endpoints de API (sin autorización - acceso público)
+        app.MapControllers();
+        
+        // Middleware personalizado para SPA fallback (DEBE ir ANTES de UseStaticFiles)
+        // Si el archivo no existe y no es una ruta de API/WebSocket, cambia el path a /index.html
+        // para que UseStaticFiles lo sirva
+        app.Use(async (context, next) =>
+        {
+            // Si es una ruta de API, WebSocket o Swagger, NO hacer nada
+            if (context.Request.Path.StartsWithSegments("/api") || 
+                context.Request.Path.StartsWithSegments("/ws") ||
+                context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                await next();
+                return;
+            }
+
+            // Si el archivo existe, servirlo normalmente
+            var fileInfo = fileProvider.GetFileInfo(context.Request.Path.Value ?? "/");
+            if (!fileInfo.Exists || fileInfo.IsDirectory)
+            {
+                // Si no existe y no es una ruta de API/WebSocket, servir index.html (SPA fallback)
+                var indexFile = fileProvider.GetFileInfo("/index.html");
+                if (indexFile.Exists)
+                {
+                    context.Request.Path = "/index.html";
+                }
+            }
+            
+            await next();
+        });
+        
+        // Archivos estáticos DESPUÉS del middleware de fallback
         app.UseStaticFiles(new StaticFileOptions
         {
-            FileProvider = new PhysicalFileProvider(browserPath),
-            RequestPath = ""
-        });
-        
-        // Fallback a index.html para SPA routing
-        app.MapFallbackToFile("index.html", new StaticFileOptions
-        {
-            FileProvider = new PhysicalFileProvider(browserPath)
+            FileProvider = fileProvider,
+            RequestPath = "",
+            OnPrepareResponse = ctx =>
+            {
+                // Agregar headers para evitar caché y permitir acceso
+                ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+                ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+                ctx.Context.Response.Headers.Append("Expires", "0");
+                ctx.Context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            }
         });
 
         // ════════════════════════════════════════════════════════════════

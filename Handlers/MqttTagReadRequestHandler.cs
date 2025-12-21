@@ -35,7 +35,16 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
         _logger = logger;
         _plcConnection = plcConnection;
         _mqtt = mqtt;
-        _logger.LogInformation("✅ MqttTagReadRequestHandler instantiated - ready to receive tag read requests");
+        
+        // Verificar si el PLC está disponible (no es NullEdgePlcDriver)
+        if (_plcConnection is Services.NullEdgePlcDriver || !_plcConnection.IsConnected)
+        {
+            _logger.LogWarning("⚠️ MqttTagReadRequestHandler: PLC not available. This handler should run on a PC with ASComm license.");
+        }
+        else
+        {
+            _logger.LogInformation("✅ MqttTagReadRequestHandler instantiated - ready to receive tag read requests");
+        }
     }
 
     public async Task HandleAsync(
@@ -71,9 +80,10 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
 
         try
         {
-            if (!_plcConnection.IsConnected)
+            // Verificar si el PLC está disponible (no es NullEdgePlcDriver)
+            if (_plcConnection is Services.NullEdgePlcDriver || !_plcConnection.IsConnected)
             {
-                _logger.LogWarning("⚠️ PLC not connected, cannot read tag {TagName}", request.TagName);
+                _logger.LogWarning("⚠️ PLC not available on this PC. This handler should run on a PC with ASComm license.");
                 
                 var errorResponse = new TagReadResponse
                 {
@@ -82,7 +92,7 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                     Timestamp = DateTimeOffset.UtcNow,
                     CorrelationId = request.CorrelationId,
                     HasError = true,
-                    ErrorMessage = $"PLC not connected. State: {_plcConnection.State}"
+                    ErrorMessage = "PLC not available on this PC. This handler should run on a PC with ASComm license."
                 };
 
                 await _mqtt.Publisher.PublishAsync("plc/read-response", errorResponse, cancellationToken: cancellationToken);
@@ -160,10 +170,21 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                 _logger.LogDebug("⚠️ Tag '{TagName}' not found in factory, using object type", request.TagName);
             }
 
+            Console.WriteLine("═══════════════════════════════════════════════════════════════");
+            Console.WriteLine($"📤 Publishing TagReadResponse to MQTT topic 'plc/read-response'");
+            Console.WriteLine($"   TagName: {response.TagName}");
+            Console.WriteLine($"   Quality: {response.Quality}");
+            Console.WriteLine($"   HasError: {response.HasError}");
+            Console.WriteLine($"   HasValue: {response.Value != null}");
+            Console.WriteLine($"   CorrelationId: {response.CorrelationId ?? "N/A"}");
+            
             await _mqtt.Publisher.PublishAsync("plc/read-response", response, cancellationToken: cancellationToken);
 
+            Console.WriteLine($"✅ TagReadResponse published successfully to MQTT");
+            Console.WriteLine("═══════════════════════════════════════════════════════════════");
+
             _logger.LogInformation(
-                "📤 Tag read response published | Tag: {TagName} | Quality: {Quality} | Error: {HasError}",
+                "📤 Tag read response published to MQTT | Tag: {TagName} | Quality: {Quality} | Error: {HasError} | Topic: plc/read-response",
                 response.TagName,
                 response.Quality,
                 response.HasError);

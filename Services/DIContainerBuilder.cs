@@ -15,9 +15,10 @@ public class DIContainerBuilder
     private IServiceProvider? _serviceProvider;
     private IContainer? _autofacContainer;
     private Container? _simpleInjectorContainer;
-    private readonly ServiceCollection _services = new();
+    private readonly IServiceCollection _services;
     private ContainerBuilder? _autofacBuilder;
     private DIContainerType _containerType = DIContainerType.None;
+    private readonly bool _ownsServiceCollection;
 
     private enum DIContainerType
     {
@@ -27,8 +28,14 @@ public class DIContainerBuilder
         SimpleInjector
     }
 
+    /// <summary>
+    /// Crea un nuevo DIContainerBuilder con su propio ServiceCollection interno.
+    /// </summary>
     private DIContainerBuilder()
     {
+        _services = new ServiceCollection();
+        _ownsServiceCollection = true;
+        
         // Configurar logging por defecto
         _services.AddLogging(builder =>
         {
@@ -37,7 +44,38 @@ public class DIContainerBuilder
         });
     }
 
+    /// <summary>
+    /// Crea un nuevo DIContainerBuilder usando un ServiceCollection existente (por ejemplo, builder.Services de ASP.NET Core).
+    /// </summary>
+    /// <param name="services">El ServiceCollection existente que ya contiene servicios como SignalR, Controllers, etc.</param>
+    private DIContainerBuilder(IServiceCollection services)
+    {
+        _services = services ?? throw new ArgumentNullException(nameof(services));
+        _ownsServiceCollection = false;
+        
+        // Si el ServiceCollection no tiene logging configurado, agregarlo
+        if (!_services.Any(s => s.ServiceType == typeof(ILoggerFactory)))
+        {
+            _services.AddLogging(builder =>
+            {
+                builder.AddConsole();
+                builder.SetMinimumLevel(LogLevel.Debug);
+            });
+        }
+    }
+
+    /// <summary>
+    /// Crea un nuevo DIContainerBuilder con su propio ServiceCollection interno.
+    /// </summary>
     public static DIContainerBuilder Create() => new();
+
+    /// <summary>
+    /// Crea un nuevo DIContainerBuilder usando un ServiceCollection existente.
+    /// Útil cuando quieres que DIContainerBuilder use el mismo ServiceCollection que ASP.NET Core
+    /// (para que pueda resolver servicios como IHubContext, Controllers, etc.).
+    /// </summary>
+    /// <param name="services">El ServiceCollection existente (por ejemplo, builder.Services de ASP.NET Core).</param>
+    public static DIContainerBuilder Create(IServiceCollection services) => new(services);
 
     /// <summary>
     /// Usa Microsoft.Extensions.DependencyInjection como contenedor DI.
@@ -46,9 +84,12 @@ public class DIContainerBuilder
     {
         _containerType = DIContainerType.NativeDI;
         
-        // Registrar servicios de la aplicación
-        // AsCommDemoService NO se registra (se crea manualmente con 'new')
-        _services.AddSingleton<IDataProcessingService, DataProcessingService>();
+        // Registrar servicios de la aplicación solo si no están ya registrados
+        // (si se pasó un ServiceCollection externo, los servicios ya pueden estar registrados)
+        if (!_services.Any(s => s.ServiceType == typeof(IDataProcessingService)))
+        {
+            _services.AddSingleton<IDataProcessingService, DataProcessingService>();
+        }
         
         return this;
     }
