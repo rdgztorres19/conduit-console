@@ -41,6 +41,7 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
         IMessageContext context,
         CancellationToken cancellationToken = default)
     {
+        Console.WriteLine($"[MqttTagReadRequestHandler] 🚀 HandleAsync START - Request #{_requestCount + 1}");
         _requestCount++;
 
         _logger.LogInformation(
@@ -49,6 +50,9 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
             context.Topic,
             System.Text.Json.JsonSerializer.Serialize(request));
         
+        Console.WriteLine($"[MqttTagReadRequestHandler] ✅ Logged initial message | Request #{_requestCount} | Topic: {context.Topic}");
+        Console.WriteLine($"[MqttTagReadRequestHandler] 📄 Request content: TagName='{request.TagName}', CorrelationId='{request.CorrelationId}'");
+        
         // Log adicional para diagnóstico
         _logger.LogDebug(
             "📨 Message received | Payload length: {Length} | Topic: {Topic} | Request object: {RequestJson}",
@@ -56,8 +60,10 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
             context.Topic,
             System.Text.Json.JsonSerializer.Serialize(request));
 
+        Console.WriteLine($"[MqttTagReadRequestHandler] 🔍 Checking if TagName is empty...");
         if (string.IsNullOrWhiteSpace(request.TagName))
         {
+            Console.WriteLine($"[MqttTagReadRequestHandler] ⚠️ TagName is empty! Sending error response...");
             _logger.LogWarning("⚠️ Received empty tag name in request #{Count}", _requestCount);
             
             // Publicar respuesta de error
@@ -71,9 +77,13 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                 ErrorMessage = "Tag name is required"
             };
 
+            Console.WriteLine($"[MqttTagReadRequestHandler] 📤 Publishing error response to 'plc/read-response'...");
             await _mqtt.Publisher.PublishAsync("plc/read-response", errorResponse, cancellationToken: cancellationToken);
+            Console.WriteLine($"[MqttTagReadRequestHandler] ✅ Error response published. RETURNING.");
             return;
         }
+        
+        Console.WriteLine($"[MqttTagReadRequestHandler] ✅ TagName is valid: '{request.TagName}'");
 
         _logger.LogInformation(
             "📥 [#{Count}] Received tag read request | Tag: {TagName} | CorrelationId: {CorrelationId} | Topic: {Topic}",
@@ -82,10 +92,14 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
             request.CorrelationId ?? "N/A",
             context.Topic);
 
+        Console.WriteLine($"[MqttTagReadRequestHandler] 🔄 Starting PLC read process for tag: '{request.TagName}'");
+
         try
         {
+            Console.WriteLine($"[MqttTagReadRequestHandler] 🔌 Checking PLC connection... IsConnected: {_plcConnection.IsConnected}, State: {_plcConnection.State}");
             if (!_plcConnection.IsConnected)
             {
+                Console.WriteLine($"[MqttTagReadRequestHandler] ⚠️ PLC NOT CONNECTED! Sending error response...");
                 _logger.LogWarning("⚠️ PLC not connected, cannot read tag {TagName}", request.TagName);
                 
                 var errorResponse = new TagReadResponse
@@ -98,9 +112,13 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                     ErrorMessage = $"PLC not connected. State: {_plcConnection.State}"
                 };
 
+                Console.WriteLine($"[MqttTagReadRequestHandler] 📤 Publishing PLC disconnected error to 'plc/read-response'...");
                 await _mqtt.Publisher.PublishAsync("plc/read-response", errorResponse, cancellationToken: cancellationToken);
+                Console.WriteLine($"[MqttTagReadRequestHandler] ✅ Error response published. RETURNING.");
                 return;
             }
+            
+            Console.WriteLine($"[MqttTagReadRequestHandler] ✅ PLC is connected! Proceeding to read tag...");
 
             // Leer el tag del PLC dinámicamente
             // Intentar leer como STRUCT_samples si es ngpSampleCurrent, sino como object
@@ -108,7 +126,9 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
 
             if (request.TagName.Equals("ngpSampleCurrent", StringComparison.OrdinalIgnoreCase))
             {
+                Console.WriteLine($"[MqttTagReadRequestHandler] 📖 Reading tag '{request.TagName}' as STRUCT_samples...");
                 var result = await _plcConnection.ReadTagAsync<STRUCT_samples>(request.TagName, cancellationToken);
+                Console.WriteLine($"[MqttTagReadRequestHandler] ✅ Tag read successful! Quality: {result.Quality}, TagName: {result.TagName}");
                 
                 response = new TagReadResponse
                 {
@@ -119,11 +139,14 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                     CorrelationId = request.CorrelationId,
                     HasError = result.Quality != Conduit.EdgePlcDriver.Messages.TagQuality.Good
                 };
+                Console.WriteLine($"[MqttTagReadRequestHandler] 📝 Response created - HasError: {response.HasError}");
             }
             else
             {
                 // Para otros tags, leer como object
+                Console.WriteLine($"[MqttTagReadRequestHandler] 📖 Reading tag '{request.TagName}' as object...");
                 var result = await _plcConnection.ReadTagAsync<object>(request.TagName, cancellationToken);
+                Console.WriteLine($"[MqttTagReadRequestHandler] ✅ Tag read successful! Quality: {result.Quality}, TagName: {result.TagName}");
                 
                 response = new TagReadResponse
                 {
@@ -134,19 +157,26 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                     CorrelationId = request.CorrelationId,
                     HasError = result.Quality != Conduit.EdgePlcDriver.Messages.TagQuality.Good
                 };
+                Console.WriteLine($"[MqttTagReadRequestHandler] 📝 Response created - HasError: {response.HasError}");
             }
 
             // Publicar la respuesta por MQTT
+            Console.WriteLine($"[MqttTagReadRequestHandler] 📤 Publishing response to 'plc/read-response'...");
             await _mqtt.Publisher.PublishAsync("plc/read-response", response, cancellationToken: cancellationToken);
+            Console.WriteLine($"[MqttTagReadRequestHandler] ✅ Response published successfully!");
 
             _logger.LogInformation(
                 "📤 Published tag read response | Tag: {TagName} | Quality: {Quality} | CorrelationId: {CorrelationId}",
                 response.TagName,
                 response.Quality,
                 response.CorrelationId ?? "N/A");
+            
+            Console.WriteLine($"[MqttTagReadRequestHandler] 🎉 HandleAsync COMPLETED successfully!");
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[MqttTagReadRequestHandler] ❌ EXCEPTION caught: {ex.GetType().Name}: {ex.Message}");
+            Console.WriteLine($"[MqttTagReadRequestHandler] Stack trace: {ex.StackTrace}");
             _logger.LogError(ex, "❌ Error reading tag {TagName} from PLC", request.TagName);
 
             var errorResponse = new TagReadResponse
@@ -159,7 +189,11 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                 ErrorMessage = ex.Message
             };
 
+            Console.WriteLine($"[MqttTagReadRequestHandler] 📤 Publishing exception error response to 'plc/read-response'...");
             await _mqtt.Publisher.PublishAsync("plc/read-response", errorResponse, cancellationToken: cancellationToken);
+            Console.WriteLine($"[MqttTagReadRequestHandler] ✅ Exception error response published.");
         }
+        
+        Console.WriteLine($"[MqttTagReadRequestHandler] 🏁 HandleAsync END - Request #{_requestCount}");
     }
 }
