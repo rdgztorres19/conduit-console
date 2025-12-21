@@ -108,26 +108,10 @@ public class WebSocketManager
     {
         var groupName = $"tag:{tagName}";
         
-        Console.WriteLine($"🔍 WebSocketManager.SendToTagAsync called for tag '{tagName}' (Group: {groupName})");
-        Console.WriteLine($"   Total sockets: {_sockets.Count}");
-        Console.WriteLine($"   Total tag subscriptions: {_tagSubscriptions.Count}");
-        
         if (!_tagSubscriptions.TryGetValue(groupName, out var subscribers) || subscribers.Count == 0)
         {
-            Console.WriteLine($"⚠️ No subscribers for tag '{tagName}' (Group: {groupName})");
-            Console.WriteLine($"   Available groups: {string.Join(", ", _tagSubscriptions.Keys)}");
-            _logger.LogWarning("⚠️ No subscribers for tag '{TagName}' (Group: {GroupName})", tagName, groupName);
-            
-            // Intentar enviar a todos los clientes como fallback
-            Console.WriteLine($"📤 Attempting to send to ALL clients as fallback");
             await SendToAllAsync(message, cancellationToken);
             return;
-        }
-
-        Console.WriteLine($"✅ Found {subscribers.Count} subscribers for tag '{tagName}'");
-        foreach (var subId in subscribers)
-        {
-            Console.WriteLine($"   - Subscriber: {subId}");
         }
 
         var jsonOptions = new JsonSerializerOptions
@@ -177,8 +161,6 @@ public class WebSocketManager
         if (tasks.Count > 0)
         {
             await Task.WhenAll(tasks);
-            Console.WriteLine($"✅ Sent message to {tasks.Count} subscribers for tag '{tagName}'");
-            _logger.LogInformation("✅ Sent message to {Count} subscribers for tag '{TagName}'", tasks.Count, tagName);
         }
         else
         {
@@ -224,7 +206,6 @@ public class WebSocketManager
         if (tasks.Count > 0)
         {
             await Task.WhenAll(tasks);
-            _logger.LogInformation("✅ Sent message to {Count} connected clients", tasks.Count);
         }
     }
 

@@ -28,7 +28,6 @@ public class MqttTagWriteResponseHandler : IMessageSubscriptionHandler<TagWriteR
     {
         _logger = logger;
         _webSocketManager = webSocketManager;
-        _logger.LogInformation("✅ MqttTagWriteResponseHandler instantiated - ready to receive tag write responses");
     }
 
     public async Task HandleAsync(
@@ -37,13 +36,6 @@ public class MqttTagWriteResponseHandler : IMessageSubscriptionHandler<TagWriteR
         CancellationToken cancellationToken = default)
     {
         _responseCount++;
-
-        _logger.LogDebug(
-            "🔔 MqttTagWriteResponseHandler.HandleAsync called | Response #{Count} | Tag: {TagName} | Path: {Path} | Success: {Success}",
-            _responseCount,
-            response.TagName,
-            response.Path,
-            response.Success);
 
         try
         {

@@ -31,8 +31,6 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
     {
         _logger = logger;
         _webSocketManager = webSocketManager;
-        // Console.WriteLine($"🔧 MqttTagReadResponseHandler constructor called. WebSocketManager instance ID: {_webSocketManager.GetHashCode()}");
-        // _logger.LogInformation("✅ MqttTagReadResponseHandler instantiated - ready to receive tag read responses");
     }
 
     public async Task HandleAsync(
@@ -42,20 +40,8 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
     {
         _responseCount++;
 
-        // Console.WriteLine("═══════════════════════════════════════════════════════════");
-
-        // _logger.LogDebug(
-        //     "🔔 MqttTagReadResponseHandler.HandleAsync called | Response #{Count} | Topic: {Topic}",
-        //     _responseCount,
-        //     context.Topic);
-
-        // Enviar actualización por WebSocket a los clientes suscritos al tag
         try
         {
-            // Console.WriteLine($"📤 Sending TagReadResponse via WebSocket for tag '{response.TagName}'");
-            // _logger.LogInformation("📤 Sending TagReadResponse via WebSocket for tag '{TagName}'", response.TagName);
-            
-            // Crear mensaje con tipo para que el cliente sepa qué es
             var message = new
             {
                 type = "TagReadResponse",
@@ -70,9 +56,6 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
             
             // Enviar a todos los clientes suscritos al tag
             await _webSocketManager.SendToTagAsync(response.TagName, message, cancellationToken);
-            
-            // Console.WriteLine($"✅ TagReadResponse sent successfully via WebSocket for tag '{response.TagName}'");
-            // _logger.LogInformation("✅ TagReadResponse sent successfully via WebSocket for tag '{TagName}'", response.TagName);
         }
         catch (Exception ex)
         {
@@ -115,13 +98,6 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
             // Console.WriteLine($"   Value:");
             // Console.WriteLine($"   {valueDisplay}");
             // Console.WriteLine("═══════════════════════════════════════════════════════════");
-
-            // _logger.LogInformation(
-            //     "✅ [#{Count}] Tag read success | Tag: {TagName} | Quality: {Quality} | CorrelationId: {CorrelationId}",
-            //     _responseCount,
-            //     response.TagName,
-            //     response.Quality,
-            //     response.CorrelationId ?? "N/A");
         }
     }
 

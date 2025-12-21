@@ -54,12 +54,6 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
     {
         _requestCount++;
 
-        _logger.LogInformation(
-            "📥 Tag read request #{Count} | Tag: {TagName} | CorrelationId: {CorrelationId}",
-            _requestCount,
-            request.TagName,
-            request.CorrelationId ?? "N/A");
-
         if (string.IsNullOrWhiteSpace(request.TagName))
         {
             _logger.LogWarning("⚠️ Received empty tag name in request #{Count}", _requestCount);
@@ -169,25 +163,9 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
 
                 _logger.LogDebug("⚠️ Tag '{TagName}' not found in factory, using object type", request.TagName);
             }
-
-            Console.WriteLine("═══════════════════════════════════════════════════════════════");
-            Console.WriteLine($"📤 Publishing TagReadResponse to MQTT topic 'plc/read-response'");
-            Console.WriteLine($"   TagName: {response.TagName}");
-            Console.WriteLine($"   Quality: {response.Quality}");
-            Console.WriteLine($"   HasError: {response.HasError}");
-            Console.WriteLine($"   HasValue: {response.Value != null}");
-            Console.WriteLine($"   CorrelationId: {response.CorrelationId ?? "N/A"}");
             
             await _mqtt.Publisher.PublishAsync("plc/read-response", response, cancellationToken: cancellationToken);
 
-            Console.WriteLine($"✅ TagReadResponse published successfully to MQTT");
-            Console.WriteLine("═══════════════════════════════════════════════════════════════");
-
-            _logger.LogInformation(
-                "📤 Tag read response published to MQTT | Tag: {TagName} | Quality: {Quality} | Error: {HasError} | Topic: plc/read-response",
-                response.TagName,
-                response.Quality,
-                response.HasError);
         }
         catch (Exception ex)
         {

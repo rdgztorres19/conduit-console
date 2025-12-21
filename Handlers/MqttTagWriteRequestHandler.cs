@@ -34,8 +34,6 @@ public class MqttTagWriteRequestHandler : IMessageSubscriptionHandler<TagWriteRe
         _plcConnection = plcConnection;
         _mqtt = mqtt;
 
-        Console.WriteLine($"🔧 MqttTagWriteRequestHandler constructor called. PLCConnection instance ID: {_plcConnection.GetHashCode()}");
-        
         // Verificar si el PLC está disponible (no es NullEdgePlcDriver)
         if (_plcConnection is Services.NullEdgePlcDriver || !_plcConnection.IsConnected)
         {
@@ -53,13 +51,6 @@ public class MqttTagWriteRequestHandler : IMessageSubscriptionHandler<TagWriteRe
         CancellationToken cancellationToken = default)
     {
         _requestCount++;
-
-        _logger.LogInformation(
-            "📥 Tag write request #{Count} | Tag: {TagName} | Path: {Path} | CorrelationId: {CorrelationId}",
-            _requestCount,
-            request.TagName,
-            request.Path,
-            request.CorrelationId ?? "N/A");
 
         if (string.IsNullOrWhiteSpace(request.TagName))
         {
@@ -139,8 +130,6 @@ public class MqttTagWriteRequestHandler : IMessageSubscriptionHandler<TagWriteRe
                 };
             }
 
-            _logger.LogDebug("Writing to path: {FullTagName} with value: {Value} (raw: {RawValue})", fullTagName, request.Value, rawValue);
-
             // Escribir al PLC
             await _plcConnection.WriteTagAsync(fullTagName, rawValue, cancellationToken);
 
@@ -156,12 +145,6 @@ public class MqttTagWriteRequestHandler : IMessageSubscriptionHandler<TagWriteRe
             };
 
             await _mqtt.Publisher.PublishAsync("plc/write-response", successResponse, cancellationToken: cancellationToken);
-
-            _logger.LogInformation(
-                "📤 Tag write response published | Tag: {TagName} | Path: {Path} | Success: {Success}",
-                successResponse.TagName,
-                successResponse.Path,
-                successResponse.Success);
         }
         catch (Exception ex)
         {
