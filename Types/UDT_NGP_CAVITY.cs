@@ -8,17 +8,17 @@ namespace ConduitPlcDemo.Types;
 [StructLayout(LayoutKind.Sequential)]
 public class UDT_NGP_CAVITY
 {
-    public short identifier;
-    public short siteNumber;
+    public int identifier;
+    public int siteNumber;
     public LOGIX_STRING lotNumber = new();
 
-    public short Identifier
+    public int Identifier
     {
         get => identifier;
         set => identifier = value;
     }
 
-    public short SiteNumber
+    public int SiteNumber
     {
         get => siteNumber;
         set => siteNumber = value;
