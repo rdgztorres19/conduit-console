@@ -48,6 +48,13 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
             _requestCount,
             context.Topic,
             System.Text.Json.JsonSerializer.Serialize(request));
+        
+        // Log adicional para diagnóstico
+        _logger.LogDebug(
+            "📨 Message received | Payload length: {Length} | Topic: {Topic} | Request object: {RequestJson}",
+            context is IMessageContext ctx ? ctx.RawPayload.Length : 0,
+            context.Topic,
+            System.Text.Json.JsonSerializer.Serialize(request));
 
         if (string.IsNullOrWhiteSpace(request.TagName))
         {

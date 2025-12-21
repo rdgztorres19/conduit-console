@@ -99,6 +99,16 @@ class Program
 
             Console.WriteLine($"✅ MQTT Connected! State: {mqttConnection.State}\n");
 
+            // Verificar estado del PLC
+            if (plcConnection != null)
+            {
+                Console.WriteLine($"📡 PLC Connection State: {plcConnection.State} | Connected: {plcConnection.IsConnected}");
+            }
+            else
+            {
+                Console.WriteLine("⚠️  PLC Connection is null");
+            }
+
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar MqttSubscriptionService
             // ════════════════════════════════════════════════════════════════
