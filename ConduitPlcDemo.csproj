@@ -21,6 +21,11 @@
       <HintPath>libs\Conduit.Mqtt.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <!-- ASComm IoT Library for direct access -->
+    <Reference Include="AutomatedSolutions.ASCommStd">
+      <HintPath>libs\AutomatedSolutions.ASCommStd.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
 

@@ -15,6 +15,7 @@
           "Microsoft.Extensions.Logging.Console": "8.0.0",
           "SimpleInjector": "5.4.6",
           "Swashbuckle.AspNetCore": "6.5.0",
+          "AutomatedSolutions.ASCommStd": "1.4.0.0",
           "Conduit.Core": "1.0.0.0",
           "Conduit.EdgePlcDriver": "1.0.0.0",
           "Conduit.Mqtt": "1.0.0.0"
@@ -204,6 +205,14 @@
           "System.Text.Encodings.Web": "8.0.0"
         }
       },
+      "AutomatedSolutions.ASCommStd/1.4.0.0": {
+        "runtime": {
+          "AutomatedSolutions.ASCommStd.dll": {
+            "assemblyVersion": "1.4.0.0",
+            "fileVersion": "1.4.8.0"
+          }
+        }
+      },
       "Conduit.Core/1.0.0.0": {
         "runtime": {
           "Conduit.Core.dll": {
@@ -225,14 +234,6 @@
           "Conduit.Mqtt.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
-          }
-        }
-      },
-      "AutomatedSolutions.ASCommStd/1.4.0.0": {
-        "runtime": {
-          "AutomatedSolutions.ASCommStd.dll": {
-            "assemblyVersion": "1.4.0.0",
-            "fileVersion": "1.4.8.0"
           }
         }
       }
@@ -447,6 +448,11 @@
       "path": "system.text.json/8.0.0",
       "hashPath": "system.text.json.8.0.0.nupkg.sha512"
     },
+    "AutomatedSolutions.ASCommStd/1.4.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Conduit.Core/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
@@ -458,11 +464,6 @@
       "sha512": ""
     },
     "Conduit.Mqtt/1.0.0.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "AutomatedSolutions.ASCommStd/1.4.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

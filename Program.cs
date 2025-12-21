@@ -8,6 +8,7 @@ using Conduit.Mqtt;
 using ConduitPlcDemo.Services;
 using Conduit.Core.Events;
 using ConduitPlcDemo.Handlers.Events;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ConduitPlcDemo;
 
@@ -104,6 +105,15 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // var mqttSubscriptionService = new MqttSubscriptionService(mqttConnection);
             // await mqttSubscriptionService.StartAsync();
+
+            // ════════════════════════════════════════════════════════════════
+            // DEMO: Lectura directa con ASComm de ngpSampleCurrent.pallets
+            // ════════════════════════════════════════════════════════════════
+            var palletsLogger = loggerFactory.CreateLogger<PalletsDirectReaderService>();
+            var palletsReader = new PalletsDirectReaderService(palletsLogger, plcIp, slot);
+            await palletsReader.ReadPalletsTagAsync();
+            
+            Console.WriteLine("\n");
 
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar AsCommDemoService
