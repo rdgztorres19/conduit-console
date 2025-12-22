@@ -34,7 +34,7 @@ class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         
-GGGGGGGGGGN~NNGGGNN        // Deshabilitar sesiones y cookies para evitar problemas de 403
+        // Deshabilitar sesiones y cookies para evitar problemas de 403
         // NO agregar AddSession, AddAuthentication, AddAuthorization
         
         // Configurar CORS para permitir todas las solicitudes (desarrollo)
@@ -233,20 +233,6 @@ GGGGGGGGGGN~NNGGGNN        // Deshabilitar sesiones y cookies para evitar proble
         
         // Archivos estáticos - servir desde la raíz
         var fileProvider = new PhysicalFileProvider(browserPath);
-        
-        // Middleware para eliminar cookies de sesión problemáticas (antes de CORS)
-        app.Use(async (context, next) =>
-        {
-            // Eliminar cookies de sesión que puedan causar 403
-            if (context.Request.Cookies.Count > 0)
-            {
-                foreach (var cookie in context.Request.Cookies.Keys)
-                {
-                    context.Response.Cookies.Delete(cookie);
-                }
-            }
-            await next();
-        });
         
         // Habilitar CORS PRIMERO (antes de cualquier otro middleware)
         app.UseCors();
