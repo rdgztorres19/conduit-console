@@ -51,3 +51,6 @@
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/angular-app/tsconfig.app.json
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/angular-app/tsconfig.json
 /Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/ConduitPlcDemo.staticwebassets.runtime.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/appsettings.json
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.Core.pdb
+/Users/rdgztorres19/Documents/Projects/MyWebApi/ConduitPlcDemo/bin/Debug/net8.0/Conduit.Mqtt.pdb

@@ -97,6 +97,45 @@ class Program
         {
             Console.WriteLine($"❌ ERROR: WebSocketManager instances are DIFFERENT! This will cause sockets to be lost.");
         }
+
+        var plcOptions = builder.Configuration.GetSection("Plc1").Get<Conduit.EdgePlcDriver.Configuration.EdgePlcDriverOptions>();
+        var mqttOptions = builder.Configuration.GetSection("Mqtt").Get<Conduit.Mqtt.Configuration.MqttConnectionOptions>();
+
+        if (plcOptions != null)
+        {
+            Console.WriteLine($"🔧 PLC Options loaded from appsettings.json:");
+            Console.WriteLine($"   ConnectionName: {plcOptions.ConnectionName}");
+            Console.WriteLine($"   IpAddress: {plcOptions.IpAddress}");
+            Console.WriteLine($"   CpuSlot: {plcOptions.CpuSlot}");
+            Console.WriteLine($"   Backplane: {plcOptions.Backplane}");
+            Console.WriteLine($"   DefaultPollingIntervalMs: {plcOptions.DefaultPollingIntervalMs}");
+            Console.WriteLine($"   ConnectionTimeoutSeconds: {plcOptions.ConnectionTimeoutSeconds}");
+            Console.WriteLine($"   AutoReconnect: {plcOptions.AutoReconnect}");
+            Console.WriteLine($"   MaxReconnectDelaySeconds: {plcOptions.MaxReconnectDelaySeconds}");
+        }
+        else
+        {
+            Console.WriteLine($"⚠️  PLC Options: NULL (not found in appsettings.json)");
+        }
+
+        if (mqttOptions != null)
+        {
+            Console.WriteLine($"🔧 MQTT Options loaded from appsettings.json:");
+            Console.WriteLine($"   ConnectionName: {mqttOptions.ConnectionName}");
+            Console.WriteLine($"   Host: {mqttOptions.Host}");
+            Console.WriteLine($"   Port: {mqttOptions.Port}");
+            Console.WriteLine($"   Username: {mqttOptions.Username}");
+            Console.WriteLine($"   Password: {(string.IsNullOrEmpty(mqttOptions.Password) ? "(empty)" : "***")}");
+            Console.WriteLine($"   UseTls: {mqttOptions.UseTls}");
+            Console.WriteLine($"   KeepAliveSeconds: {mqttOptions.KeepAliveSeconds}");
+            Console.WriteLine($"   AutoReconnect: {mqttOptions.AutoReconnect}");
+            Console.WriteLine($"   ProtocolVersion: {mqttOptions.ProtocolVersion}");
+        }
+        else
+        {
+            Console.WriteLine($"⚠️  MQTT Options: NULL (not found in appsettings.json)");
+        }
+        Console.WriteLine();
         
         var conduit = ConduitBuilder.Create()
             .WithActivator(activator)
@@ -107,14 +146,17 @@ class Program
             //     .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
             //     .WithLoggerFactory(loggerFactory)
             //     .WithHandlersFromEntryAssembly())
+            // .AddMqttConnection(mqtt => mqtt
+            //     .WithConnectionName("mqtt")
+            //     .WithBroker("66.179.188.92", 1883)
+            //     .WithCredentials("admin", "sbrQp10")
+            //     .WithTls(enabled: false)
+            //     .WithClientId($"webapi-simpleinjector-{Environment.MachineName}-{Guid.NewGuid():N}"[..50])
+            //     .WithAutoReconnect(enabled: true, maxDelaySeconds: 30)
+            //     .WithKeepAlive(60)
+            //     .WithHandlersFromEntryAssembly())
             .AddMqttConnection(mqtt => mqtt
-                .WithConnectionName("mqtt")
-                .WithBroker("66.179.188.92", 1883)
-                .WithCredentials("admin", "sbrQp10")
-                .WithTls(enabled: false)
-                .WithClientId($"webapi-simpleinjector-{Environment.MachineName}-{Guid.NewGuid():N}"[..50])
-                .WithAutoReconnect(enabled: true, maxDelaySeconds: 30)
-                .WithKeepAlive(60)
+                .WithOptions(mqttOptions)
                 .WithHandlersFromEntryAssembly())
             .Build();
 

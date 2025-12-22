@@ -23,15 +23,25 @@ public class MqttTagReadResponseHandler : IMessageSubscriptionHandler<TagReadRes
 {
     private readonly ILogger<MqttTagReadResponseHandler> _logger;
     private readonly Services.WebSocketManager _webSocketManager;
+    private readonly IMqttPublisher _publisher;
+    private readonly IDataProcessingService _dataProcessingService;
+    private readonly IMqttConnection _mqtt;
     private int _responseCount = 0;
 
     public MqttTagReadResponseHandler(
         ILogger<MqttTagReadResponseHandler> logger,
+        IMqttPublisher publisher,
+        IDataProcessingService dataProcessingService,
+        IMqttConnection mqtt,
         Services.WebSocketManager webSocketManager)
     {
         _logger = logger;
+        _publisher = publisher;
+        _dataProcessingService = dataProcessingService;
         _webSocketManager = webSocketManager;
+        _mqtt = mqtt;
     }
+
 
     public async Task HandleAsync(
         TagReadResponse response,
