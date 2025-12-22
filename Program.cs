@@ -34,7 +34,7 @@ class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         
-        // Deshabilitar sesiones y cookies para evitar problemas de 403
+GGGGGGGGGGN~NNGGGNN        // Deshabilitar sesiones y cookies para evitar problemas de 403
         // NO agregar AddSession, AddAuthentication, AddAuthorization
         
         // Configurar CORS para permitir todas las solicitudes (desarrollo)
