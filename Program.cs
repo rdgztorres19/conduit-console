@@ -2,11 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
-using Conduit.Core;
-using Conduit.EdgePlcDriver;
-using Conduit.Mqtt;
+using Sitas.Edge.Core;
+using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.Mqtt;
 using ConduitPlcDemo.Services;
-using Conduit.Core.Events;
+using Sitas.Edge.Core.Events;
 using ConduitPlcDemo.Handlers.Events;
 using Microsoft.AspNetCore.Routing;
 
@@ -16,7 +16,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        Console.WriteLine("🚀 Conduit PLC Demo - Starting...\n");
+        Console.WriteLine("🚀 Sitas.Edge PLC Demo - Starting...\n");
 
         // ════════════════════════════════════════════════════════════════
         // CONFIGURACIÓN
@@ -69,7 +69,7 @@ class Program
         var loggerFactory = diContainer.GetLoggerFactory();
         
         // IMPORTANTE: Crear una instancia única del WebSocketManager y registrarla explícitamente
-        // para que tanto ASP.NET Core como Conduit usen la MISMA instancia
+        // para que tanto ASP.NET Core como Sitas.Edge usen la MISMA instancia
         var webSocketManagerInstance = new Services.WebSocketManager(
             loggerFactory.CreateLogger<Services.WebSocketManager>());
         Console.WriteLine($"🔧 WebSocketManager instance created: {webSocketManagerInstance.GetHashCode()}");
@@ -78,13 +78,13 @@ class Program
         builder.Services.AddSingleton(webSocketManagerInstance);
         
         // CRÍTICO: Reconstruir el DIContainerBuilder DESPUÉS de registrar el WebSocketManager
-        // para que el ServiceProvider de Conduit tenga acceso a la misma instancia
+        // para que el ServiceProvider de Sitas.Edge tenga acceso a la misma instancia
         diContainer = DIContainerBuilder.Create(builder.Services)
             .UseNativeDI()
             .Build();
 
         // ════════════════════════════════════════════════════════════════
-        // CONFIGURAR CONDUIT CON PLC
+        // CONFIGURAR SITAS.EDGE CON PLC
         // ════════════════════════════════════════════════════════════════
         // Verificar que el activator use el mismo ServiceProvider
         var activator = diContainer.GetActivator();
@@ -98,8 +98,8 @@ class Program
             Console.WriteLine($"❌ ERROR: WebSocketManager instances are DIFFERENT! This will cause sockets to be lost.");
         }
 
-        var plcOptions = builder.Configuration.GetSection("Plc1").Get<Conduit.EdgePlcDriver.Configuration.EdgePlcDriverOptions>();
-        var mqttOptions = builder.Configuration.GetSection("Mqtt").Get<Conduit.Mqtt.Configuration.MqttConnectionOptions>();
+        var plcOptions = builder.Configuration.GetSection("Plc1").Get<Sitas.Edge.EdgePlcDriver.Configuration.EdgePlcDriverOptions>();
+        var mqttOptions = builder.Configuration.GetSection("Mqtt").Get<Sitas.Edge.Mqtt.Configuration.MqttConnectionOptions>();
 
         if (plcOptions != null)
         {
@@ -137,7 +137,7 @@ class Program
         }
         Console.WriteLine();
         
-        var conduit = ConduitBuilder.Create()
+        var conduit = SitasEdgeBuilder.Create()
             .WithActivator(activator)
             // .AddEdgePlcDriver(plc => plc
             //     .WithConnectionName("plc1")
@@ -195,7 +195,7 @@ class Program
                 return;
             }
 
-            // EventMediator.Global is now initialized after Conduit.Build()
+            // EventMediator.Global is now initialized after SitasEdgeBuilder.Build()
             // Test event emission
             await EventMediator.Global.EmitAsync("tempChanged", new TemperatureChangedEvent(25.5f));
 

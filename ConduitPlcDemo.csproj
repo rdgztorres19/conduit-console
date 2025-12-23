@@ -8,17 +8,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Conduit libraries as direct DLL references -->
-    <Reference Include="Conduit.Core">
-      <HintPath>libs\Conduit.Core.dll</HintPath>
+    <!-- Sitas.Edge libraries as direct DLL references -->
+    <Reference Include="Sitas.Edge.Core">
+      <HintPath>libs\Sitas.Edge.Core.dll</HintPath>
       <Private>true</Private>
     </Reference>
-    <Reference Include="Conduit.EdgePlcDriver">
-      <HintPath>libs\Conduit.EdgePlcDriver.dll</HintPath>
+    <Reference Include="Sitas.Edge.EdgePlcDriver">
+      <HintPath>libs\Sitas.Edge.EdgePlcDriver.dll</HintPath>
       <Private>true</Private>
     </Reference>
-    <Reference Include="Conduit.Mqtt">
-      <HintPath>libs\Conduit.Mqtt.dll</HintPath>
+    <Reference Include="Sitas.Edge.Mqtt">
+      <HintPath>libs\Sitas.Edge.Mqtt.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Sitas.Edge.DependencyInjection">
+      <HintPath>libs\Sitas.Edge.DependencyInjection.dll</HintPath>
       <Private>true</Private>
     </Reference>
     <!-- ASComm IoT Library for direct access -->

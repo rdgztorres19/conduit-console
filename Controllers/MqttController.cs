@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Conduit.Mqtt;
+using Sitas.Edge.Mqtt;
 using ConduitPlcDemo.Messages;
 using ConduitPlcDemo.Types;
 

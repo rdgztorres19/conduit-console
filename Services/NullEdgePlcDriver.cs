@@ -1,7 +1,7 @@
-using Conduit.EdgePlcDriver;
-using Conduit.EdgePlcDriver.Messages;
-using Conduit.Core.Abstractions;
-using Conduit.Core.Enums;
+using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.EdgePlcDriver.Messages;
+using Sitas.Edge.Core.Abstractions;
+using Sitas.Edge.Core.Enums;
 using System.Collections.Generic;
 
 namespace ConduitPlcDemo.Services;

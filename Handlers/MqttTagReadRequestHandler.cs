@@ -1,10 +1,10 @@
 using System.Reflection;
-using Conduit.Core.Abstractions;
-using Conduit.Core.Attributes;
-using Conduit.Core.Enums;
-using Conduit.EdgePlcDriver;
-using Conduit.Mqtt;
-using Conduit.Mqtt.Attributes;
+using Sitas.Edge.Core.Abstractions;
+using Sitas.Edge.Core.Attributes;
+using Sitas.Edge.Core.Enums;
+using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.Mqtt;
+using Sitas.Edge.Mqtt.Attributes;
 using ConduitPlcDemo.Messages;
 using ConduitPlcDemo;
 using ConduitPlcDemo.Types;
@@ -158,7 +158,7 @@ public class MqttTagReadRequestHandler : IMessageSubscriptionHandler<TagReadRequ
                     Quality = result.Quality.ToString(),
                     Timestamp = result.Timestamp,
                     CorrelationId = request.CorrelationId,
-                    HasError = result.Quality != Conduit.EdgePlcDriver.Messages.TagQuality.Good
+                    HasError = result.Quality != Sitas.Edge.EdgePlcDriver.Messages.TagQuality.Good
                 };
 
                 _logger.LogDebug("⚠️ Tag '{TagName}' not found in factory, using object type", request.TagName);

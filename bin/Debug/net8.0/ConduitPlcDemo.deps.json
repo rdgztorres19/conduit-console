@@ -16,9 +16,10 @@
           "SimpleInjector": "5.4.6",
           "Swashbuckle.AspNetCore": "6.5.0",
           "AutomatedSolutions.ASCommStd": "1.4.0.0",
-          "Conduit.Core": "1.0.0.0",
-          "Conduit.EdgePlcDriver": "1.0.0.0",
-          "Conduit.Mqtt": "1.0.0.0"
+          "Sitas.Edge.Core": "1.0.0.0",
+          "Sitas.Edge.DependencyInjection": "1.0.0.0",
+          "Sitas.Edge.EdgePlcDriver": "1.0.0.0",
+          "Sitas.Edge.Mqtt": "1.0.0.0"
         },
         "runtime": {
           "ConduitPlcDemo.dll": {}
@@ -213,25 +214,33 @@
           }
         }
       },
-      "Conduit.Core/1.0.0.0": {
+      "Sitas.Edge.Core/1.0.0.0": {
         "runtime": {
-          "Conduit.Core.dll": {
+          "Sitas.Edge.Core.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
-      "Conduit.EdgePlcDriver/1.0.0.0": {
+      "Sitas.Edge.DependencyInjection/1.0.0.0": {
         "runtime": {
-          "Conduit.EdgePlcDriver.dll": {
+          "Sitas.Edge.DependencyInjection.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
-      "Conduit.Mqtt/1.0.0.0": {
+      "Sitas.Edge.EdgePlcDriver/1.0.0.0": {
         "runtime": {
-          "Conduit.Mqtt.dll": {
+          "Sitas.Edge.EdgePlcDriver.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Sitas.Edge.Mqtt/1.0.0.0": {
+        "runtime": {
+          "Sitas.Edge.Mqtt.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -453,17 +462,22 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Conduit.Core/1.0.0.0": {
+    "Sitas.Edge.Core/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
     },
-    "Conduit.EdgePlcDriver/1.0.0.0": {
+    "Sitas.Edge.DependencyInjection/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
     },
-    "Conduit.Mqtt/1.0.0.0": {
+    "Sitas.Edge.EdgePlcDriver/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Sitas.Edge.Mqtt/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

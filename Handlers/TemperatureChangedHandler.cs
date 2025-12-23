@@ -1,9 +1,10 @@
 using Microsoft.Extensions.Logging;
-using Conduit.Core.Events;
-using Conduit.Core.Events.Attributes;
-using Conduit.Core.Abstractions;
-using Conduit.Mqtt;
-using Conduit.EdgePlcDriver.Attributes;
+using Sitas.Edge.Core.Events;
+using Sitas.Edge.Core.Events.Attributes;
+using Sitas.Edge.Core.Abstractions;
+using Sitas.Edge.Mqtt;
+using Sitas.Edge.EdgePlcDriver.Attributes;
+using Sitas.Edge.EdgePlcDriver;
 
 namespace ConduitPlcDemo.Handlers.Events;
 
@@ -24,9 +25,9 @@ public record TemperatureChangedEvent(float Temperature);
 public class TemperatureChangedHandler : IEventHandler<TemperatureChangedEvent>
 {
     private readonly ILogger<TemperatureChangedHandler> _logger;
-    private readonly IConduit _conduit;
+    private readonly ISitasEdge _conduit;
 
-    public TemperatureChangedHandler(ILogger<TemperatureChangedHandler> logger, IConduit conduit)
+    public TemperatureChangedHandler(ILogger<TemperatureChangedHandler> logger, ISitasEdge conduit)
     {
         _logger = logger;
         _conduit = conduit;

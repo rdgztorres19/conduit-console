@@ -1,5 +1,5 @@
-using Conduit.EdgePlcDriver;
-using Conduit.EdgePlcDriver.Messages;
+using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.EdgePlcDriver.Messages;
 
 namespace ConduitPlcDemo.Services;
 

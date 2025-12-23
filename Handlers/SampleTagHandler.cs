@@ -1,8 +1,8 @@
-using Conduit.EdgePlcDriver.Attributes;
-using Conduit.EdgePlcDriver.Messages;
-using Conduit.Core.Abstractions;
-using Conduit.Core.Attributes;
-using Conduit.Mqtt;
+using Sitas.Edge.EdgePlcDriver.Attributes;
+using Sitas.Edge.EdgePlcDriver.Messages;
+using Sitas.Edge.Core.Abstractions;
+using Sitas.Edge.Core.Attributes;
+using Sitas.Edge.Mqtt;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

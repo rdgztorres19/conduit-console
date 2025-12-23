@@ -1,6 +1,6 @@
-using Conduit.Mqtt;
-using Conduit.Core.Enums;
-using Conduit.Core.Abstractions;
+using Sitas.Edge.Mqtt;
+using Sitas.Edge.Core.Enums;
+using Sitas.Edge.Core.Abstractions;
 using ConduitPlcDemo.Messages.Ignition;
 
 namespace ConduitPlcDemo.Services;

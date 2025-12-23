@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Conduit.EdgePlcDriver;
-using Conduit.EdgePlcDriver.Messages;
+using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.EdgePlcDriver.Messages;
 using ConduitPlcDemo;
 using System.Text.Json;
 

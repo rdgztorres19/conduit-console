@@ -1,9 +1,9 @@
-using Conduit.Core.Abstractions;
-using Conduit.Core.Attributes;
-using Conduit.Core.Enums;
-using Conduit.EdgePlcDriver;
-using Conduit.Mqtt;
-using Conduit.Mqtt.Attributes;
+using Sitas.Edge.Core.Abstractions;
+using Sitas.Edge.Core.Attributes;
+using Sitas.Edge.Core.Enums;
+using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.Mqtt;
+using Sitas.Edge.Mqtt.Attributes;
 using ConduitPlcDemo.Messages;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
