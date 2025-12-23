@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ConduitPlcDemo")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2bacae9d5d6c546969a42865ba796d88eb206875")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a65921362ff395838ae2e76a90a0fe912dc6a742")]
 [assembly: System.Reflection.AssemblyProductAttribute("ConduitPlcDemo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ConduitPlcDemo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

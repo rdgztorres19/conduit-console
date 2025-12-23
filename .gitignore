@@ -7,6 +7,10 @@ obj/
 *.cache
 *.log
 
+# Exception: Include DLLs in libs folder (required dependencies)
+!libs/*.dll
+!libs/*.pdb
+
 ## Visual Studio / Rider
 .vs/
 .idea/
