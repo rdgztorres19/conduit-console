@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.FileProviders;
@@ -136,6 +137,9 @@ class Program
             Console.WriteLine($"⚠️  MQTT Options: NULL (not found in appsettings.json)");
         }
         Console.WriteLine();
+
+        var externalHandlersPath = Path.Combine(AppContext.BaseDirectory, "ExternalHandlers.dll");
+        var externalHandlersAssembly = Assembly.LoadFrom(externalHandlersPath);
         
         var conduit = SitasEdgeBuilder.Create()
             .WithActivator(activator)
@@ -157,7 +161,12 @@ class Program
             //     .WithHandlersFromEntryAssembly())
             .AddMqttConnection(mqtt => mqtt
                 .WithOptions(mqttOptions)
-                .WithHandlersFromEntryAssembly())
+                // .WithHandlersFromEntryAssembly()
+                .WithHandlersFromAssemblies(
+                    Assembly.GetEntryAssembly()!,
+                    externalHandlersAssembly
+                )
+            )
             .Build();
 
         // var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
@@ -197,7 +206,7 @@ class Program
 
             // EventMediator.Global is now initialized after SitasEdgeBuilder.Build()
             // Test event emission
-            await EventMediator.Global.EmitAsync("tempChanged", new TemperatureChangedEvent(25.5f));
+            //await EventMediator.Global.EmitAsync("tempChanged", new TemperatureChangedEvent(25.5f));
 
             Console.WriteLine($"✅ MQTT Connected! State: {mqttConnection.State}\n");
 

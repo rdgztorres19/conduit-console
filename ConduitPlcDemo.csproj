@@ -50,6 +50,25 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Exclude ExternalHandlers folder from compilation - it's a separate project -->
+    <Compile Remove="ExternalHandlers\**" />
+    <Content Remove="ExternalHandlers\**" />
+    <EmbeddedResource Remove="ExternalHandlers\**" />
+    <None Remove="ExternalHandlers\**" />
+  </ItemGroup>
+
+  <Target Name="CopyExternalHandlers" AfterTargets="Build">
+    <ItemGroup>
+      <ExternalHandlersDll Include="$(MSBuildThisFileDirectory)..\ExternalHandlers\bin\$(Configuration)\net8.0\ExternalHandlers.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ExternalHandlersDll)" 
+          DestinationFolder="$(OutputPath)" 
+          Condition="Exists('%(ExternalHandlersDll.FullPath)')" />
+    <Message Text="✅ Copied ExternalHandlers.dll to output directory" Condition="Exists('%(ExternalHandlersDll.FullPath)')" Importance="high" />
+    <Warning Text="⚠️  ExternalHandlers.dll not found. Build ExternalHandlers project first: cd ../ExternalHandlers &amp;&amp; dotnet build" Condition="!Exists('%(ExternalHandlersDll.FullPath)')" />
+  </Target>
+
   <Target Name="BuildAngular" BeforeTargets="Build" Condition="'$(SkipAngularBuild)' != 'true'">
     <Message Text="Building Angular application..." Importance="high" />
     <Exec Command="npm install" WorkingDirectory="angular-app" Condition="!Exists('angular-app/node_modules')" ContinueOnError="true" IgnoreExitCode="true" />
