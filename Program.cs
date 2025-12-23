@@ -195,6 +195,10 @@ class Program
                 return;
             }
 
+            // EventMediator.Global is now initialized after Conduit.Build()
+            // Test event emission
+            await EventMediator.Global.EmitAsync("tempChanged", new TemperatureChangedEvent(25.5f));
+
             Console.WriteLine($"✅ MQTT Connected! State: {mqttConnection.State}\n");
 
             // ════════════════════════════════════════════════════════════════
