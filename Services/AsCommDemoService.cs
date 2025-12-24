@@ -184,6 +184,7 @@ public class AsCommDemoService
         Console.WriteLine($"📖 Reading {tagNames.Length} siteNumber tags (batch read with type-safety)...");
 
         // Usa la sobrecarga genérica ReadTagsAsync<int> para type-safety
+        // Ahora retorna IReadOnlyDictionary<string, TagValue<int>> con metadata completa
         var results = await _plcConnection.ReadTagsAsync<int>(tagNames);
 
         Console.WriteLine($"✅ Batch read completed: {results.Count} tags");
@@ -191,10 +192,10 @@ public class AsCommDemoService
 
         foreach (var tagName in tagNames)
         {
-            if (results.TryGetValue(tagName, out var siteNumber))
+            if (results.TryGetValue(tagName, out var tagValue))
             {
-                // No necesita cast - el diccionario ya es Dictionary<string, int>
-                Console.WriteLine($"   ✓ {tagName}: {siteNumber}");
+                // tagValue es TagValue<int> con metadata (Quality, Timestamp, etc.)
+                Console.WriteLine($"   ✓ {tagName}: {tagValue.Value} (Quality: {tagValue.Quality}, Timestamp: {tagValue.Timestamp:HH:mm:ss.fff})");
             }
             else
             {

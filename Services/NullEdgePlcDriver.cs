@@ -52,7 +52,7 @@ public class NullEdgePlcDriver : IEdgePlcDriver
         throw new NotSupportedException("PLC operations are not available. Use MQTT endpoints instead.");
     }
 
-    public Task<IReadOnlyDictionary<string, T>> ReadTagsAsync<T>(
+    public Task<IReadOnlyDictionary<string, TagValue<T>>> ReadTagsAsync<T>(
         IEnumerable<string> tagNames,
         CancellationToken cancellationToken = default)
     {
