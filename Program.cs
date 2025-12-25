@@ -230,8 +230,8 @@ class Program
             // ════════════════════════════════════════════════════════════════
             var asCommDemoService = new AsCommDemoService(plcConnection);
             // await asCommDemoService.ReadSampleTagAsync();
-            await asCommDemoService.ReadMultipleSiteNumbersAsync();
-            //await asCommDemoService.StartSubscriptionAsync();
+            //await asCommDemoService.ReadMultipleSiteNumbersAsync();
+            await asCommDemoService.StartSubscriptionAsync();
             //asCommDemoService.StartPeriodicWrites();
 
 

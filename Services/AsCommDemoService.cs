@@ -38,6 +38,9 @@ public class AsCommDemoService
     {
         Console.WriteLine("🚀 Starting Edge PLC Driver programmatic subscription...");
 
+        // Reset counter
+        _updateCount = 0;
+
         // Suscripción programática al tag (similar al atributo [EdgePlcDriverSubscribe])
         _subscription = await _plcConnection.SubscribeAsync<STRUCT_samples>(
             "ngpSampleCurrent",
@@ -75,6 +78,18 @@ public class AsCommDemoService
             {
                 var cavity = pallet.Cavities[0];
                 Console.WriteLine($"      └─ Cavity[0] | ID: {cavity.Identifier} | Site: {cavity.SiteNumber} | Lot: {cavity.LotNumber.Value}");
+            }
+        }
+
+        // After 5 prints, cancel the subscription
+        if (_updateCount >= 5)
+        {
+            Console.WriteLine($"🛑 Reached 5 updates, stopping subscription...");
+            if (_subscription != null)
+            {
+                await _subscription.DisposeAsync();
+                _subscription = null;
+                Console.WriteLine("✅ Subscription stopped");
             }
         }
 
