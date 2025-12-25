@@ -232,7 +232,7 @@ class Program
             // await asCommDemoService.ReadSampleTagAsync();
             //await asCommDemoService.ReadMultipleSiteNumbersAsync();
             await asCommDemoService.StartSubscriptionAsync();
-            //asCommDemoService.StartPeriodicWrites();
+            asCommDemoService.StartPeriodicWrites();
 
 
             // ════════════════════════════════════════════════════════════════
