@@ -143,13 +143,13 @@ class Program
         
         var conduit = SitasEdgeBuilder.Create()
             .WithActivator(activator)
-            // .AddEdgePlcDriver(plc => plc
-            //     .WithConnectionName("plc1")
-            //     .WithPlc(plcIp, cpuSlot: slot)
-            //     .WithDefaultPollingInterval(100)
-            //     .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
-            //     .WithLoggerFactory(loggerFactory)
-            //     .WithHandlersFromEntryAssembly())
+            .AddEdgePlcDriver(plc => plc
+                .WithConnectionName("plc1")
+                .WithPlc(plcIp, cpuSlot: slot)
+                .WithDefaultPollingInterval(100)
+                .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
+                .WithLoggerFactory(loggerFactory)
+                .WithHandlersFromEntryAssembly())
             // .AddMqttConnection(mqtt => mqtt
             //     .WithConnectionName("mqtt")
             //     .WithBroker("66.179.188.92", 1883)
@@ -169,15 +169,15 @@ class Program
             )
             .Build();
 
-        // var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
-        // builder.Services.AddSingleton(plcConnection);
+        var plcConnection = conduit.GetConnection<IEdgePlcDriver>();
+        builder.Services.AddSingleton(plcConnection);
         
         // PLC deshabilitado en esta PC - sin licencia ASComm
         // Registrar NullEdgePlcDriver para que los controllers no fallen
         // Los handlers MQTT verificarán si el PLC está disponible antes de usarlo
         // En la otra PC con licencia ASComm, descomentar las líneas de arriba y comentar esta
-        var nullPlcConnection = new Services.NullEdgePlcDriver();
-        builder.Services.AddSingleton<IEdgePlcDriver>(nullPlcConnection);
+        // var nullPlcConnection = new Services.NullEdgePlcDriver();
+        // builder.Services.AddSingleton<IEdgePlcDriver>(nullPlcConnection);
 
         var mqttConnection = conduit.GetConnection<IMqttConnection>();
         builder.Services.AddSingleton(mqttConnection);
@@ -228,9 +228,9 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar AsCommDemoService
             // ════════════════════════════════════════════════════════════════
-            // var asCommDemoService = new AsCommDemoService(plcConnection);
+            var asCommDemoService = new AsCommDemoService(plcConnection);
             // await asCommDemoService.ReadSampleTagAsync();
-            // await asCommDemoService.ReadMultipleSiteNumbersAsync();
+            await asCommDemoService.ReadMultipleSiteNumbersAsync();
             //await asCommDemoService.StartSubscriptionAsync();
             //asCommDemoService.StartPeriodicWrites();
 
