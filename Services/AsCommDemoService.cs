@@ -51,11 +51,37 @@ public class AsCommDemoService
         Console.WriteLine("✅ Edge PLC Driver subscription active: ngpSampleCurrent (1000ms polling)");
     }
 
+    /// <summary>
+    /// Handler que se ejecuta cada vez que el tag ngpSampleCurrent cambia.
+    /// </summary>
+    /// <param name="message">Valor del tag con metadata (Quality, Timestamp, etc.)</param>
+    /// <param name="context">Contexto con métodos para leer/escribir tags al PLC</param>
+    /// <param name="cancellationToken">
+    /// ⚠️ IMPORTANTE: Este token NO es para hacer unsubscribe.
+    /// 
+    /// Para hacer UNSUBSCRIBE, usa: await _subscription.DisposeAsync()
+    /// 
+    /// El CancellationToken es para:
+    /// 1. Cancelar operaciones asíncronas DENTRO del handler (ej: WriteTagAsync, ReadTagAsync)
+    /// 2. Detectar si la suscripción fue cancelada externamente (si alguien llamó DisposeAsync)
+    /// 3. Pasar el token a otras operaciones asíncronas para cancelación cooperativa
+    /// 
+    /// Ejemplos de uso:
+    /// - await context.WriteTagAsync("SomeTag", value, cancellationToken);  // ✅ Pasar token a operaciones async
+    /// - await context.ReadTagAsync<int>("SomeTag", cancellationToken);      // ✅ Pasar token a operaciones async
+    /// - if (cancellationToken.IsCancellationRequested) return;              // ✅ Verificar si fue cancelado
+    /// 
+    /// Para UNSUBSCRIBE (fuera del handler):
+    /// - await _subscription.DisposeAsync();  // ✅ Esto detiene la suscripción
+    /// </param>
     private async Task HandleSampleTagAsync(
         TagValue<STRUCT_samples> message,
         IEdgePlcDriverMessageContext context,
         CancellationToken cancellationToken)
     {
+        // Verificar si la operación fue cancelada antes de procesar
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (message.Quality != TagQuality.Good)
         {
             Console.WriteLine($"⚠️ [SERVICE] Sample tag quality: {message.Quality}");
@@ -80,6 +106,9 @@ public class AsCommDemoService
                 Console.WriteLine($"      └─ Cavity[0] | ID: {cavity.Identifier} | Site: {cavity.SiteNumber} | Lot: {cavity.LotNumber.Value}");
             }
         }
+
+        // Ejemplo: Si quisieras escribir un tag dentro del handler, usarías el cancellationToken:
+        // await context.WriteTagAsync("SomeTag", value, cancellationToken);
 
         // After 5 prints, cancel the subscription
         if (_updateCount >= 5)
