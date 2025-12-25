@@ -17,7 +17,7 @@ namespace ConduitPlcDemo.Handlers;
 /// Este es un UDT complejo con samples, pallets y cavities.
 /// </summary>
 /// 
-// [DisableHandler] 
+[DisableHandler] 
 [EdgePlcDriverSubscribe("plc1", "ngpSampleCurrent", pollingIntervalMs: 1000, OnChangeOnly = true)]
 public class SampleTagHandler : IMessageSubscriptionHandler<TagValue<STRUCT_samples>>
 {

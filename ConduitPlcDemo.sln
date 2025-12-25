@@ -4,7 +4,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConduitPlcDemo", "ConduitPlcDemo.csproj", "{9521B2A4-90E4-C988-6A4C-13AFE5019228}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalHandlers", "..\ExternalHandlers\ExternalHandlers.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+88889o9ollolllkggcgggaraaaagggggggooooooooooooooooooooo Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalHandlers", "..\ExternalHandlers\ExternalHandlers.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -138,8 +138,8 @@ class Program
         }
         Console.WriteLine();
 
-        var externalHandlersPath = Path.Combine(AppContext.BaseDirectory, "ExternalHandlers.dll");
-        var externalHandlersAssembly = Assembly.LoadFrom(externalHandlersPath);
+        // var externalHandlersPath = Path.Combine(AppContext.BaseDirectory, "ExternalHandlers.dll");
+        // var externalHandlersAssembly = Assembly.LoadFrom(externalHandlersPath);
         
         var conduit = SitasEdgeBuilder.Create()
             .WithActivator(activator)
@@ -161,11 +161,11 @@ class Program
             //     .WithHandlersFromEntryAssembly())
             .AddMqttConnection(mqtt => mqtt
                 .WithOptions(mqttOptions)
-                // .WithHandlersFromEntryAssembly()
-                .WithHandlersFromAssemblies(
-                    Assembly.GetEntryAssembly()!,
-                    externalHandlersAssembly
-                )
+                .WithHandlersFromEntryAssembly()
+                // .WithHandlersFromAssemblies(
+                //     Assembly.GetEntryAssembly()!,
+                //     externalHandlersAssembly
+                // )
             )
             .Build();
 

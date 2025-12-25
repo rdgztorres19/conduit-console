@@ -21,7 +21,7 @@ public record TemperatureChangedEvent(float Temperature);
 /// Uso: await _mediator.EmitAsync("tempChanged", new TemperatureChangedEvent(25.5f));
 /// </remarks>
 [Event("tempChanged")]
- [EdgePlcDriverRead("plc1", "Sensor_Temperature", typeof(float))]
+[EdgePlcDriverRead("plc1", "Sensor_Temperature", typeof(float))]
 public class TemperatureChangedHandler : IEventHandler<TemperatureChangedEvent>
 {
     private readonly ILogger<TemperatureChangedHandler> _logger;
