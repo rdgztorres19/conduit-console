@@ -1,4 +1,5 @@
 using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.EdgePlcDriver.Attributes;
 using Sitas.Edge.EdgePlcDriver.Messages;
 
 namespace ConduitPlcDemo.Services;
@@ -14,7 +15,9 @@ public class AsCommDemoService
     private System.Threading.Timer? _writeTimer;
     private CancellationTokenSource? _cts;
     private IAsyncDisposable? _subscription;
+    private IAsyncDisposable? _unsolicitedSubscription;
     private int _updateCount = 0;
+    private int _unsolicitedUpdateCount = 0;
 
     public AsCommDemoService(IEdgePlcDriver plcConnection)
     {
@@ -49,6 +52,74 @@ public class AsCommDemoService
             cancellationToken: cancellationToken);
 
         Console.WriteLine("✅ Edge PLC Driver subscription active: ngpSampleCurrent (1000ms polling)");
+    }
+
+    /// <summary>
+    /// Inicia suscripción programática usando unsolicited messages (PLC push).
+    /// El PLC debe estar configurado con MSG instruction para enviar mensajes no solicitados.
+    /// </summary>
+    public async Task StartUnsolicitedSubscriptionAsync(CancellationToken cancellationToken = default)
+    {
+        Console.WriteLine("🚀 Starting Edge PLC Driver unsolicited subscription...");
+        Console.WriteLine("⚠️  Note: PLC must be configured with MSG instruction to send unsolicited messages");
+
+        // Reset counter
+        _unsolicitedUpdateCount = 0;
+
+        // Suscripción usando unsolicited messages (PLC push)
+        _unsolicitedSubscription = await _plcConnection.SubscribeUnsolicitedAsync<STRUCT_samples>(
+            "ngpSampleCurrent",
+            HandleUnsolicitedSampleTagAsync,
+            cancellationToken);
+
+        Console.WriteLine("✅ Edge PLC Driver unsolicited subscription active: ngpSampleCurrent (PLC push)");
+    }
+
+    /// <summary>
+    /// Handler que se ejecuta cada vez que el PLC envía un mensaje unsolicited para ngpSampleCurrent.
+    /// </summary>
+    /// <param name="message">Valor del tag con metadata (Quality, Timestamp, etc.)</param>
+    /// <param name="context">Contexto con métodos para leer/escribir tags al PLC</param>
+    /// <param name="cancellationToken">Token para cancelación cooperativa</param>
+    private async Task HandleUnsolicitedSampleTagAsync(
+        TagValue<STRUCT_samples> message,
+        IEdgePlcDriverMessageContext context,
+        CancellationToken cancellationToken)
+    {
+        // Verificar si la operación fue cancelada antes de procesar
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (message.Quality != TagQuality.Good)
+        {
+            Console.WriteLine($"⚠️ [UNSOLICITED] Sample tag quality: {message.Quality}");
+            return;
+        }
+
+        _unsolicitedUpdateCount++;
+        var sample = message.Value;
+
+        Console.WriteLine($"📨 [UNSOLICITED #{_unsolicitedUpdateCount}] Sample Update (Pushed from PLC) | SampleId: {sample.Data.SampleId.Value} | SampledOn: {sample.Data.SampledOn.Value}");
+
+        // Mostrar info del primer pallet si existe
+        if (sample.Pallets?.Length > 0)
+        {
+            var pallet = sample.Pallets[0];
+            Console.WriteLine($"   └─ Pallet[0] | RFID: {pallet.Data.Rfid.Value} | Type: {pallet.Data.CasetteType.Value}");
+        }
+
+        // Después de 5 mensajes, cancelar la suscripción
+        if (_unsolicitedUpdateCount >= 5)
+        {
+            Console.WriteLine($"🛑 Reached 5 unsolicited updates, stopping subscription...");
+            if (_unsolicitedSubscription != null)
+            {
+                await _unsolicitedSubscription.DisposeAsync(); // Esto es cómo se hace unsubscribe
+                _unsolicitedSubscription = null;
+                Console.WriteLine("✅ Unsolicited subscription stopped");
+            }
+        }
+
+        await Task.CompletedTask;
     }
 
     /// <summary>

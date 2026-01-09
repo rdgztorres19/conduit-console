@@ -223,6 +223,7 @@ class Program
             // await asCommDemoService.ReadSampleTagAsync();
             //await asCommDemoService.ReadMultipleSiteNumbersAsync();
             // await asCommDemoService.StartSubscriptionAsync();
+            // await asCommDemoService.StartUnsolicitedSubscriptionAsync();
             asCommDemoService.StartPeriodicWrites();
 
 
