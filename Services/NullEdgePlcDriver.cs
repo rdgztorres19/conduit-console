@@ -1,4 +1,5 @@
 using Sitas.Edge.EdgePlcDriver;
+using Sitas.Edge.EdgePlcDriver.Attributes;
 using Sitas.Edge.EdgePlcDriver.Messages;
 using Sitas.Edge.Core.Abstractions;
 using Sitas.Edge.Core.Enums;
@@ -75,6 +76,15 @@ public class NullEdgePlcDriver : IEdgePlcDriver
         string tagName,
         Func<TagValue<T>, IEdgePlcDriverMessageContext, CancellationToken, Task> handler,
         int pollingIntervalMs = 100,
+        TagSubscriptionMode mode = TagSubscriptionMode.Polling,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotSupportedException("PLC operations are not available. Use MQTT endpoints instead.");
+    }
+
+    public Task<IAsyncDisposable> SubscribeUnsolicitedAsync<T>(
+        string tagName,
+        Func<TagValue<T>, IEdgePlcDriverMessageContext, CancellationToken, Task> handler,
         CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException("PLC operations are not available. Use MQTT endpoints instead.");

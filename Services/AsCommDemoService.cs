@@ -46,7 +46,7 @@ public class AsCommDemoService
             "ngpSampleCurrent",
             HandleSampleTagAsync,
             pollingIntervalMs: 1000,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         Console.WriteLine("✅ Edge PLC Driver subscription active: ngpSampleCurrent (1000ms polling)");
     }

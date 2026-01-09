@@ -187,7 +187,7 @@ class Program
         // ════════════════════════════════════════════════════════════════
         // CONECTAR AL MQTT
         // ════════════════════════════════════════════════════════════════
-        Console.WriteLine($"📡 Connecting to MQTT broker at 66.179.188.92:1883...");
+        Console.WriteLine($"📡 Connecting to MQTT broker at {mqttOptions.Host}:{mqttOptions.Port}...");
 
         try
         {
@@ -228,11 +228,11 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar AsCommDemoService
             // ════════════════════════════════════════════════════════════════
-            var asCommDemoService = new AsCommDemoService(plcConnection);
+            // var asCommDemoService = new AsCommDemoService(plcConnection);
             // await asCommDemoService.ReadSampleTagAsync();
             //await asCommDemoService.ReadMultipleSiteNumbersAsync();
-            await asCommDemoService.StartSubscriptionAsync();
-            asCommDemoService.StartPeriodicWrites();
+            // await asCommDemoService.StartSubscriptionAsync();
+            // asCommDemoService.StartPeriodicWrites();
 
 
             // ════════════════════════════════════════════════════════════════
