@@ -150,15 +150,6 @@ class Program
                 .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
                 .WithLoggerFactory(loggerFactory)
                 .WithHandlersFromEntryAssembly())
-            // .AddMqttConnection(mqtt => mqtt
-            //     .WithConnectionName("mqtt")
-            //     .WithBroker("66.179.188.92", 1883)
-            //     .WithCredentials("admin", "sbrQp10")
-            //     .WithTls(enabled: false)
-            //     .WithClientId($"webapi-simpleinjector-{Environment.MachineName}-{Guid.NewGuid():N}"[..50])
-            //     .WithAutoReconnect(enabled: true, maxDelaySeconds: 30)
-            //     .WithKeepAlive(60)
-            //     .WithHandlersFromEntryAssembly())
             .AddMqttConnection(mqtt => mqtt
                 .WithOptions(mqttOptions)
                 .WithHandlersFromEntryAssembly()
@@ -228,11 +219,11 @@ class Program
             // ════════════════════════════════════════════════════════════════
             // DEMO: Usar AsCommDemoService
             // ════════════════════════════════════════════════════════════════
-            // var asCommDemoService = new AsCommDemoService(plcConnection);
+            var asCommDemoService = new AsCommDemoService(plcConnection);
             // await asCommDemoService.ReadSampleTagAsync();
             //await asCommDemoService.ReadMultipleSiteNumbersAsync();
             // await asCommDemoService.StartSubscriptionAsync();
-            // asCommDemoService.StartPeriodicWrites();
+            asCommDemoService.StartPeriodicWrites();
 
 
             // ════════════════════════════════════════════════════════════════
