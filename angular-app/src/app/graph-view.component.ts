@@ -98,7 +98,7 @@ export class GraphViewComponent implements OnChanges, AfterViewInit {
   @ViewChild('networkContainer', { static: false }) networkContainer!: ElementRef;
   
   network: any = null;
-  showTree: boolean = false;  // Default to graph view
+  showTree: boolean = true;  // Default to tree view
   selectedNodeId: string | null = null;
 
   ngAfterViewInit() {
