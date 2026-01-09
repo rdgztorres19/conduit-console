@@ -146,6 +146,7 @@ class Program
             .AddEdgePlcDriver(plc => plc
                 .WithConnectionName("plc1")
                 .WithPlc(plcIp, cpuSlot: slot)
+                .WithUnsolicitedMessagePort(44819)
                 .WithDefaultPollingInterval(100)
                 .WithAutoReconnect(enabled: false, maxDelaySeconds: 30)
                 .WithLoggerFactory(loggerFactory)
