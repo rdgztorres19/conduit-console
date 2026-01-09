@@ -510,9 +510,15 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Remove .value at the end of the path if present
+    let cleanPath = data.path;
+    if (cleanPath.endsWith('.value')) {
+      cleanPath = cleanPath.slice(0, -6); // Remove '.value' (6 characters)
+    }
+
     const request = {
       tagName: this.tagName,
-      path: data.path,
+      path: cleanPath,
       value: data.value,
       correlationId: `write-${Date.now()}`
     };
